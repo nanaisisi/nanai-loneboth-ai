@@ -1,5 +1,5 @@
 [package]
-name = "loneboth-ai"
+name = "nanai-loneboth-ai"
 version = "0.1.0"
 edition = "2024"
 description = "AI framework for individual and group coordination with GPU acceleration"
@@ -11,11 +11,11 @@ keywords = ["ai", "machine-learning", "gpu", "coordination"]
 categories = ["science", "algorithms"]
 
 [lib]
-name = "loneboth_ai"
+name = "nanai_loneboth_ai"
 path = "src/lib.rs"
 
 [[bin]]
-name = "loneboth-ai"
+name = "nanailoneboth-ai"
 path = "src/main.rs"
 
 [dependencies]
