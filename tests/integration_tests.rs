@@ -1,13 +1,13 @@
 //! Tests for the Loneboth AI framework
 
-use loneboth-ai::{LonebothAI, Config, CoordinationMode, AlgorithmType};
-use loneboth-ai::algorithms::{Algorithm, StaticAlgorithm, DynamicAlgorithm};
-use loneboth-ai::coordination::CoordinationSystem;
-use loneboth-ai::gpu::GpuAccelerator;
-use loneboth-ai::verification::ConsistencyVerifier;
+use nanai_loneboth_ai::algorithms::{Algorithm, DynamicAlgorithm, StaticAlgorithm};
+use nanai_loneboth_ai::coordination::CoordinationSystem;
+use nanai_loneboth_ai::gpu::GpuAccelerator;
+use nanai_loneboth_ai::verification::ConsistencyVerifier;
+use nanai_loneboth_ai::{AlgorithmType, Config, CoordinationMode, LonebothAI};
 
 #[test]
-fn test_loneboth-ai_creation() {
+fn test_loneboth_ai_creation() {
     let ai = LonebothAI::new();
     assert_eq!(ai.config().algorithm_type, AlgorithmType::Static);
     assert_eq!(ai.config().coordination_mode, CoordinationMode::Individual);
@@ -16,14 +16,14 @@ fn test_loneboth-ai_creation() {
 }
 
 #[test]
-fn test_loneboth-ai_with_config() {
+fn test_loneboth_ai_with_config() {
     let config = Config {
         gpu_enabled: false,
         coordination_mode: CoordinationMode::Group,
         verification_enabled: false,
         algorithm_type: AlgorithmType::Dynamic,
     };
-    
+
     let ai = LonebothAI::with_config(config);
     assert_eq!(ai.config().algorithm_type, AlgorithmType::Dynamic);
     assert_eq!(ai.config().coordination_mode, CoordinationMode::Group);
@@ -36,11 +36,11 @@ fn test_basic_processing() {
     let ai = LonebothAI::new();
     let input = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let result = ai.process(&input);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert_eq!(result.len(), input.len());
-    
+
     // Results should be processed values, not identical to input
     assert_ne!(result, input);
 }
@@ -51,10 +51,10 @@ fn test_static_algorithm() {
     assert_eq!(algo.algorithm_type(), AlgorithmType::Static);
     assert_eq!(algo.name(), "StaticAlgorithm");
     assert!(algo.is_ready());
-    
+
     let input = vec![1.0, 2.0, 3.0];
     let result = algo.process(&input);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert_eq!(result.len(), input.len());
@@ -66,10 +66,10 @@ fn test_dynamic_algorithm() {
     assert_eq!(algo.algorithm_type(), AlgorithmType::Dynamic);
     assert_eq!(algo.name(), "DynamicAlgorithm");
     assert!(algo.is_ready());
-    
+
     let input = vec![1.0, 2.0, 3.0];
     let result = algo.process(&input);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert_eq!(result.len(), input.len());
@@ -80,11 +80,11 @@ fn test_coordination_system() {
     let coord = CoordinationSystem::new(CoordinationMode::Individual);
     assert_eq!(coord.mode(), CoordinationMode::Individual);
     assert_eq!(coord.consensus_threshold(), 0.8);
-    
+
     let algo = StaticAlgorithm::new();
     let input = vec![1.0, 2.0, 3.0];
     let result = coord.process(&algo, &input);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert_eq!(result.len(), input.len());
@@ -94,12 +94,12 @@ fn test_coordination_system() {
 fn test_gpu_accelerator() {
     let gpu = GpuAccelerator::new();
     let info = gpu.info();
-    
+
     assert!(!info.device_name.is_empty());
-    
+
     let input = vec![1.0, 2.0, 3.0];
     let result = gpu.accelerate(&input);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert_eq!(result.len(), input.len());
@@ -109,10 +109,10 @@ fn test_gpu_accelerator() {
 fn test_consistency_verifier() {
     let verifier = ConsistencyVerifier::new(true);
     assert!(verifier.is_enabled());
-    
+
     let valid_data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let result = verifier.verify(&valid_data);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert!(result.passed);
@@ -122,10 +122,10 @@ fn test_consistency_verifier() {
 #[test]
 fn test_consistency_verifier_with_invalid_data() {
     let verifier = ConsistencyVerifier::new(true);
-    
+
     let invalid_data = vec![f32::NAN, f32::INFINITY, 1.0];
     let result = verifier.verify(&invalid_data);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert!(!result.passed); // Should fail due to NaN/Infinity
@@ -138,7 +138,7 @@ fn test_different_coordination_modes() {
         CoordinationMode::Group,
         CoordinationMode::Hybrid,
     ];
-    
+
     for mode in modes {
         let config = Config {
             gpu_enabled: false,
@@ -146,11 +146,11 @@ fn test_different_coordination_modes() {
             verification_enabled: true,
             algorithm_type: AlgorithmType::Static,
         };
-        
+
         let ai = LonebothAI::with_config(config);
         let input = vec![1.0, 2.0, 3.0];
         let result = ai.process(&input);
-        
+
         assert!(result.is_ok());
         let result = result.unwrap();
         assert_eq!(result.len(), input.len());
@@ -162,7 +162,7 @@ fn test_empty_input() {
     let ai = LonebothAI::new();
     let input = vec![];
     let result = ai.process(&input);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert_eq!(result.len(), 0);
@@ -173,7 +173,7 @@ fn test_large_input() {
     let ai = LonebothAI::new();
     let input: Vec<f32> = (0..1000).map(|i| i as f32).collect();
     let result = ai.process(&input);
-    
+
     assert!(result.is_ok());
     let result = result.unwrap();
     assert_eq!(result.len(), input.len());

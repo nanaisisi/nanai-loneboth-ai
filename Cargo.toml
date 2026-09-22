@@ -15,7 +15,7 @@ name = "nanai_loneboth_ai"
 path = "src/lib.rs"
 
 [[bin]]
-name = "nanailoneboth-ai"
+name = "nanai-loneboth-ai"
 path = "src/main.rs"
 
 [dependencies]
@@ -24,7 +24,7 @@ burn = { version = "0.21.0", features = ["train", "std", "candle", "wgpu"] }
 nanai-burn-gna = { git = "https://github.com/nanaisisi/nanai-burn-gna.git", branch = "main" }
 
 # Async runtime
-compio = "0.19.2"
+tokio = { version = "1.53.1", features = ["full"] }
 
 # Serialization
 serde = { version = "1.0.229", features = ["derive"] }

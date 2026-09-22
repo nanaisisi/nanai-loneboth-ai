@@ -1,4 +1,4 @@
-use loneboth-ai::{LonebothAI, Config, CoordinationMode, AlgorithmType};
+use nanai_loneboth_ai::{AlgorithmType, Config, CoordinationMode, LonebothAI};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Loneboth AI Framework Demo");
@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test with different configurations
     println!("\nTesting different configurations:");
-    
+
     // Static algorithm with group coordination
     let config = Config {
         gpu_enabled: true,
@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         verification_enabled: true,
         algorithm_type: AlgorithmType::Static,
     };
-    
+
     let ai_group = LonebothAI::with_config(config);
     let group_result = ai_group.process(&input_data)?;
     println!("Group coordination result: {:?}", group_result);
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         verification_enabled: true,
         algorithm_type: AlgorithmType::Dynamic,
     };
-    
+
     let ai_dynamic = LonebothAI::with_config(config);
     let dynamic_result = ai_dynamic.process(&input_data)?;
     println!("Dynamic algorithm result: {:?}", dynamic_result);
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         verification_enabled: true,
         algorithm_type: AlgorithmType::Static,
     };
-    
+
     let ai_hybrid = LonebothAI::with_config(config);
     let hybrid_result = ai_hybrid.process(&input_data)?;
     println!("Hybrid coordination result: {:?}", hybrid_result);
