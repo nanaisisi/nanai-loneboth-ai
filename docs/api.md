@@ -2,256 +2,148 @@
 
 ## Overview
 
-The Loneboth AI framework provides a comprehensive set of APIs for AI processing with support for multiple coordination modes, algorithm types, and GPU acceleration.
+The Loneboth AI framework provides an action-oriented neural coordination and adaptation framework built on [Burn](https://burn.dev). It exposes high-level abstractions for environmental state tracking, structural-relational action synthesis, real-time adaptation, multi-agent coordination, and policy learning.
 
-## Main API
+---
 
-### `LonebothAI`
+## Central Orchestrator: `LonebothAI<B: Backend>`
 
-The main entry point for the framework.
-
-#### Constructor Methods
+The main entry point for the framework (`src/lib.rs`).
 
 ```rust
-// Create with default configuration
-let ai = LonebothAI::new();
+use loneboth_ai::{LonebothAI, SystemConfig, Backend};
+use burn::tensor::Device;
 
-// Create with custom configuration
-let config = Config {
-    gpu_enabled: true,
-    coordination_mode: CoordinationMode::Group,
-    verification_enabled: true,
-    algorithm_type: AlgorithmType::Dynamic,
-};
-let ai = LonebothAI::with_config(config);
+// Initialize with default configuration
+let device = Device::<Backend>::default();
+let ai = LonebothAI::<Backend>::new(device)?;
+
+// Initialize with custom configuration
+let config = SystemConfig::default();
+let ai = LonebothAI::<Backend>::with_config(config, device)?;
 ```
 
-#### Processing Methods
+### Core Execution Methods
+
+#### `execute_action`
+
+Executes an action in the environment given an observation tensor, automatically triggers context tracking, and initiates adaptation if environmental shifts exceed threshold.
 
 ```rust
-// Process input data
-let input = vec![1.0, 2.0, 3.0, 4.0, 5.0];
-let result = ai.process(&input)?;
+pub async fn execute_action(&mut self, observation: Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>>
 ```
 
-#### Configuration Methods
+#### `train`
+
+Trains policy networks and behavioral patterns using collected state-action experience pairs.
 
 ```rust
-// Get current configuration
-let config = ai.config();
+pub async fn train(&mut self, experience_data: Vec<(Tensor<B, 2>, Tensor<B, 2>)>) -> LonebothResult<()>
 ```
 
-## Configuration
+#### `infer`
 
-### `Config`
-
-Main configuration structure for the framework.
+Performs low-latency real-time inference on observation tensors without triggering training pipelines.
 
 ```rust
-pub struct Config {
-    pub gpu_enabled: bool,
-    pub coordination_mode: CoordinationMode,
-    pub verification_enabled: bool,
-    pub algorithm_type: AlgorithmType,
+pub async fn infer(&self, observations: Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>>
+```
+
+#### `get_metrics`
+
+Returns real-time execution statistics.
+
+```rust
+pub fn get_metrics(&self) -> SystemMetrics
+```
+
+---
+
+## Configuration Architecture
+
+### `SystemConfig`
+
+Hierarchical configuration defining operational parameters:
+
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemConfig {
+    pub device: DeviceConfig,
+    pub environment: EnvironmentConfig,
+    pub adaptation: AdaptationConfig,
+    pub training: TrainingConfig,
+    pub inference: InferenceConfig,
 }
 ```
 
-### `CoordinationMode`
+### Sub-Configurations
 
-Defines how algorithms are coordinated.
+- **`DeviceConfig`**:
+  - `use_gpu: bool`
+  - `backend_preference: BackendType` (`Candle`, `Wgpu`, `Auto`)
+- **`EnvironmentConfig`**:
+  - `observation_dimension: usize` (default: 128)
+  - `action_dimension: usize` (default: 32)
+  - `temporal_context_length: usize` (default: 10)
+  - `adaptation_threshold: f32` (default: 0.1)
+- **`AdaptationConfig`**:
+  - `learning_rate: f64` (default: 1e-3)
+  - `adaptation_frequency: usize` (default: 100)
+  - `structural_weight: f32` (default: 0.6)
+  - `relational_weight: f32` (default: 0.4)
+- **`TrainingConfig`**:
+  - `batch_size: usize` (default: 32)
+  - `epochs: usize` (default: 100)
+  - `validation_split: f32` (default: 0.2)
+  - `early_stopping: bool` (default: true)
+- **`InferenceConfig`**:
+  - `batch_optimization: bool`
+  - `cache_policy_states: bool`
+  - `real_time_adaptation: bool`
 
-```rust
-pub enum CoordinationMode {
-    Individual,  // Single algorithm execution
-    Group,       // Multi-algorithm coordination
-    Hybrid,      // Combined individual + group
-}
-```
+---
 
-### `AlgorithmType`
+## Subsystem APIs
 
-Defines the type of algorithm to use.
+### 1. Coordination System (`src/coordination.rs`)
 
-```rust
-pub enum AlgorithmType {
-    Static,    // Fixed, pre-defined algorithms
-    Dynamic,   // Adaptive algorithms
-    Variable,  // Runtime configurable
-}
-```
-
-## Algorithm API
-
-### `Algorithm` Trait
-
-Common interface for all algorithms.
-
-```rust
-pub trait Algorithm {
-    fn process(&self, input: &[f32]) -> Result<Vec<f32>>;
-    fn algorithm_type(&self) -> AlgorithmType;
-    fn name(&self) -> &str;
-    fn is_ready(&self) -> bool;
-}
-```
-
-### Built-in Algorithms
-
-#### `StaticAlgorithm`
+Manages consensus and multi-agent collective behavior.
 
 ```rust
-let algo = StaticAlgorithm::new();
-let result = algo.process(&input_data)?;
+use loneboth_ai::coordination::{CoordinationSystem, CoordinationMode};
+
+let coord = CoordinationSystem::new(CoordinationMode::Group, &config, device)?;
+let current_mode = coord.mode();
 ```
 
-#### `DynamicAlgorithm`
+**Coordination Modes:**
+
+- `Individual`: Independent single-agent execution.
+- `Group`: Distributed consensus across agents.
+- `Hybrid`: Autonomous execution with periodic group synchronization.
+- `Hierarchical`: Tiered decision structure.
+- `Emergent`: Self-organizing behavioral convergence.
+- `Adaptive`: Context-aware dynamic mode selection.
+
+### 2. Verification System (`src/verification.rs`)
+
+Ensures system consistency, behavioral safety, and structural integrity.
 
 ```rust
-let mut algo = DynamicAlgorithm::new();
-algo.set_adaptation_factor(1.5);
-let result = algo.process(&input_data)?;
+use loneboth_ai::verification::{VerificationSystem, VerificationConfig};
+
+let verifier = VerificationSystem::new(verification_config, device)?;
 ```
 
-## Coordination API
+### 3. Core Action Execution (`src/core.rs`)
 
-### `CoordinationSystem`
+- **`ActionExecutor<B>`**: Coordinates `StructuralProcessor`, `RelationalAnalyzer`, and `ActionSynthesizer`.
+- **`EnvironmentState<B>`**: Represents current environmental state, temporal context, and detected non-stationarity magnitude.
 
-Manages coordination between algorithms.
+---
 
-```rust
-let coord = CoordinationSystem::new(CoordinationMode::Group);
-let result = coord.process(&algorithm, &input)?;
+## Backend Selection & Types
 
-// Set consensus threshold
-coord.set_consensus_threshold(0.9);
-```
-
-## GPU Acceleration API
-
-### `GpuAccelerator`
-
-Provides GPU acceleration capabilities.
-
-```rust
-let gpu = GpuAccelerator::new();
-let accelerated_result = gpu.accelerate(&input)?;
-
-// Check GPU info
-let info = gpu.info();
-println!("GPU: {}", info.device_name);
-```
-
-### `GpuBackend`
-
-Available GPU backends.
-
-```rust
-pub enum GpuBackend {
-    OnnxRuntime,  // Cross-platform ONNX Runtime
-    DirectML,     // Windows DirectML
-    Cpu,          // CPU fallback
-}
-```
-
-## Verification API
-
-### `ConsistencyVerifier`
-
-Provides result verification and validation.
-
-```rust
-let verifier = ConsistencyVerifier::new(true);
-let verification_result = verifier.verify(&result)?;
-
-if verification_result.passed {
-    println!("Verification passed with confidence: {}", verification_result.confidence);
-}
-```
-
-### `VerificationResult`
-
-Result of verification process.
-
-```rust
-pub struct VerificationResult {
-    pub passed: bool,
-    pub confidence: f32,
-    pub message: String,
-}
-```
-
-## Error Handling
-
-The framework uses the standard Rust `Result` type for error handling:
-
-```rust
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-```
-
-## Usage Examples
-
-### Basic Usage
-
-```rust
-use loneboth-ai::{LonebothAI, Config, CoordinationMode, AlgorithmType};
-
-// Create AI instance
-let ai = LonebothAI::new();
-
-// Process data
-let input = vec![1.0, 2.0, 3.0, 4.0, 5.0];
-let result = ai.process(&input)?;
-
-println!("Result: {:?}", result);
-```
-
-### Advanced Configuration
-
-```rust
-// Custom configuration
-let config = Config {
-    gpu_enabled: true,
-    coordination_mode: CoordinationMode::Hybrid,
-    verification_enabled: true,
-    algorithm_type: AlgorithmType::Dynamic,
-};
-
-let ai = LonebothAI::with_config(config);
-let result = ai.process(&input)?;
-```
-
-### Algorithm Comparison
-
-```rust
-// Compare different algorithms
-let algorithms = vec![
-    AlgorithmType::Static,
-    AlgorithmType::Dynamic,
-];
-
-for algo_type in algorithms {
-    let config = Config {
-        algorithm_type: algo_type,
-        ..Default::default()
-    };
-
-    let ai = LonebothAI::with_config(config);
-    let result = ai.process(&input)?;
-
-    println!("{:?} result: {:?}", algo_type, result);
-}
-```
-
-## Performance Considerations
-
-- **GPU Acceleration**: Enable GPU acceleration for large datasets
-- **Coordination Mode**: Individual mode is fastest, Group mode provides better consensus
-- **Verification**: Disable verification for performance-critical applications
-- **Algorithm Type**: Static algorithms are fastest, Dynamic algorithms are most flexible
-
-## Platform Support
-
-- **Linux**: Full support including GPU acceleration
-- **Windows**: Full support with DirectML acceleration
-- **macOS**: CPU processing with limited GPU support
-- **ARM**: Supported on ARM64 platforms
+- **`Backend`**: Default computation backend alias (e.g. `Candle<f32>` or `Wgpu<f32, i32>`).
+- **`AutodiffBackend`**: Autodiff-wrapped backend for gradient computation (`Autodiff<Backend>`).
+- **`LonebothResult<T>`**: Alias for `anyhow::Result<T>`.

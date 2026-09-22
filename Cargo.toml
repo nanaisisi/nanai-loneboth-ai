@@ -1,17 +1,17 @@
 [package]
 name = "loneboth-ai"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "AI framework for individual and group coordination with GPU acceleration"
 license = "MIT OR Apache-2.0"
 authors = ["nanaisisi <131863615+nanaisisi@users.noreply.github.com>"]
-repository = "https://github.com/nanaisisi/loneboth-ai"
+repository = "https://github.com/nanaisisi/nanai-loneboth-ai"
 readme = "README.md"
 keywords = ["ai", "machine-learning", "gpu", "coordination"]
 categories = ["science", "algorithms"]
 
 [lib]
-name = "loneboth-ai"
+name = "loneboth_ai"
 path = "src/lib.rs"
 
 [[bin]]
@@ -20,27 +20,23 @@ path = "src/main.rs"
 
 [dependencies]
 # Burn framework for ML training and inference
-burn = { version = "*", features = ["train", "std", "candle", "wgpu"] }
-burn-candle = "*"
-burn-wgpu = "*"
-burn-dataset = "*"
-burn-train = "*"
-burn-core = "*"
+burn = { version = "0.21.0", features = ["train", "std", "candle", "wgpu"] }
+nanai-burn-gna = { git = "https://github.com/nanaisisi/nanai-burn-gna.git", branch = "main" }
 
 # Async runtime
-tokio = { version = "*", features = ["full"] }
+compio = "0.19.2"
 
 # Serialization
-serde = { version = "*", features = ["derive"] }
-serde_json = "*"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
 
 # Metrics and monitoring
-tracing = "*"
-tracing-subscriber = "*"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
 
 # Random number generation
-rand = "*"
+rand = "0.10.3"
 
 # Error handling
-anyhow = "*"
-thiserror = "*"
+anyhow = "1.0.104"
+thiserror = "2.0.20"

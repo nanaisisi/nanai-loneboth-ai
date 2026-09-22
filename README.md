@@ -1,190 +1,83 @@
-# AI 生成です。
-
 # Loneboth AI Framework
 
-A comprehensive AI framework for individual and group coordination with support for static and dynamic algorithms, GPU acceleration, and consistency verification.
+Loneboth AI は、[Burn](https://burn.dev) ディープラーニングフレームワークを基盤とした、個体および群体（マルチエージェント）の協調、環境適応、および構造・関係性に着目した行動生成・推論・学習フレームワークです。
 
-## Features
+GPU アクセラレーション（Candle / WGPU）を標準サポートし、動的に変化する環境に対する自律的な適応（Online Adaptation）とニューラル整合性検証を提供します。
 
-### Core Capabilities
+---
 
-- **Multiple Algorithm Types**: Static (fixed), Dynamic (adaptive), Variable (configurable)
-- **Coordination Modes**: Individual, Group, and Hybrid processing
-- **GPU Acceleration**: ONNX Runtime and DirectML support
-- **Consistency Verification**: Algorithm result validation and integrity checking
-- **Cross-Platform**: Linux, Windows, macOS support
+## 主な特徴 (Features)
 
-### Architecture Components
+- **構造・関係性の行動生成パイプライン (Structural & Relational Action Execution)**:
+  - `StructuralProcessor`: 観測空間の空間・構造的特徴を抽出
+  - `RelationalAnalyzer`: 時系列コンテキストと構造特徴の相関・アテンションを解析
+  - `ActionSynthesizer`: 統合特徴から多次元行動テンソルを合成
+- **マルチエージェント協調システム (Coordination System)**:
+  - 単体 (`Individual`)、群体合意 (`Group`)、ハイブリッド (`Hybrid`)、階層型 (`Hierarchical`)、創発型 (`Emergent`)、動的適応型 (`Adaptive`)
+- **環境適応・ドリフト検知 (Dynamic Environmental Adaptation)**:
+  - 環境変化量（Drift Magnitude）をリアルタイムに検知し、適応閾値を超えた場合にメタ適応・オンラインファインチューニングを自動発火
+- **安全性と整合性検証 (Consistency Verification)**:
+  - 予測状態と現実状態の乖離度および行動制約を評価するニューラル検証ネットワーク
+- **ハードウェアアクセラレーション (GPU Acceleration)**:
+  - Burn の `Wgpu` (DirectX 12, Vulkan, Metal) および `Candle` (CUDA, Metal) によるシームレスな GPU 最適化
 
-1. **Algorithm Engine** (アルゴリズム定義)
+---
 
-   - Static algorithms (静的（固定）アルゴリズム)
-   - Dynamic algorithms (動的（ファジー）アルゴリズム)
-   - Variable algorithms (可変アルゴリズム)
+## クイックスタート (Quick Start)
 
-2. **Coordination System** (単体/群体協調)
-
-   - Individual algorithm execution
-   - Group coordination and consensus
-   - Hybrid processing mode
-
-3. **GPU Acceleration** (GPU アクセラレーション)
-
-   - ONNX Runtime integration
-   - DirectML support for Windows
-   - Automatic fallback to CPU
-
-4. **Verification System** (整合性確認)
-   - Result consistency checking
-   - Algorithm integrity validation
-   - Statistical analysis
-
-## Quick Start
-
-### Installation
-
-Add to your `Cargo.toml`:
+### 依存関係の追加 (`Cargo.toml`)
 
 ```toml
 [dependencies]
-loneboth-ai = "0.1.0"
+loneboth_ai = { version = "0.1.0" }
+burn = { version = "0.21.0", features = ["train", "std", "candle", "wgpu"] }
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
 ```
 
-### Basic Usage
+### 基本的な使い方
 
 ```rust
-use loneboth-ai::{LonebothAI, Config, CoordinationMode, AlgorithmType};
+use loneboth_ai::{LonebothAI, SystemConfig, Backend};
+use burn::tensor::{Tensor, Device};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create AI instance with default configuration
-    let ai = LonebothAI::new();
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // 1. デバイスと設定の初期化
+    let device = Device::<Backend>::default();
+    let config = SystemConfig::default();
 
-    // Process input data
-    let input = vec![1.0, 2.0, 3.0, 4.0, 5.0];
-    let result = ai.process(&input)?;
+    let mut ai = LonebothAI::<Backend>::with_config(config, device.clone())?;
 
-    println!("Result: {:?}", result);
+    // 2. 観測テンソルの作成 [batch_size: 1, obs_dim: 128]
+    let observation = Tensor::<Backend, 2>::zeros([1, 128], &device);
+
+    // 3. 行動実行（環境コンテキストの更新と適応が自動で行われます）
+    let action = ai.execute_action(observation).await?;
+    println!("Action Tensor: {:?}", action);
+
+    // 4. メトリクスの取得
+    let metrics = ai.get_metrics();
+    println!("Actions executed: {}", metrics.total_actions_executed);
+
     Ok(())
 }
 ```
 
-### Advanced Configuration
+---
 
-```rust
-// Custom configuration
-let config = Config {
-    gpu_enabled: true,
-    coordination_mode: CoordinationMode::Group,
-    verification_enabled: true,
-    algorithm_type: AlgorithmType::Dynamic,
-};
+## ドキュメント (Documentation)
 
-let ai = LonebothAI::with_config(config);
-let result = ai.process(&input)?;
-```
+- [詳細ドキュメント 目次 (docs/README.md)](docs/README.md)
+- [アーキテクチャ設計書 (docs/architecture.md)](docs/architecture.md)
+- [API 仕様書 (docs/api.md)](docs/api.md)
+- [導入チュートリアル (docs/getting_started.md)](docs/getting_started.md)
 
-## Running the Demo
+---
 
-```bash
-# Build the project
-cargo build
+## ライセンス (License)
 
-# Run the demo
-cargo run
+Licensed under either of:
 
-# Run tests
-cargo test
-```
-
-## Documentation
-
-- [API Documentation](docs/api.md)
-- [Architecture Overview](docs/architecture.md)
-- [Complete Documentation](docs/README.md)
-
-## Platform Support
-
-- **Linux**: Full support (x86_64, ARM64)
-- **Windows**: DirectML acceleration support
-- **macOS**: CPU processing with Metal acceleration (planned)
-- **ARM Ubuntu**: Native ARM64 support
-
-## Configuration Options
-
-### Algorithm Types
-
-- **Static**: Pre-defined, high-performance algorithms
-- **Dynamic**: Adaptive algorithms with fuzzy logic
-- **Variable**: Runtime configurable algorithms
-
-### Coordination Modes
-
-- **Individual**: Single algorithm execution
-- **Group**: Multi-algorithm coordination with consensus
-- **Hybrid**: Combined individual and group processing
-
-### GPU Acceleration
-
-- **ONNX Runtime**: Cross-platform ML inference
-- **DirectML**: Windows hardware acceleration
-- **CPU Fallback**: Automatic when GPU unavailable
-
-## Development
-
-### Building
-
-```bash
-cargo build --release
-```
-
-### Testing
-
-```bash
-cargo test
-```
-
-### Documentation
-
-```bash
-cargo doc --open
-```
-
-## License
-
-This project is licensed under either of
-
-- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT License ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Application Layer                    │
-├─────────────────────────────────────────────────────────┤
-│                  Coordination System                   │
-│  ┌─────────────────┐  ┌─────────────────────────────┐   │
-│  │  Individual     │  │    Group Coordination       │   │
-│  │  Algorithms     │  │    & Consensus              │   │
-│  └─────────────────┘  └─────────────────────────────┘   │
-├─────────────────────────────────────────────────────────┤
-│                    Algorithm Engine                     │
-│  ┌───────────┐ ┌────────────┐ ┌─────────────────────┐   │
-│  │  Static   │ │  Dynamic   │ │    Variable         │   │
-│  │  Algos    │ │  Algos     │ │    Algos            │   │
-│  └───────────┘ └────────────┘ └─────────────────────┘   │
-├─────────────────────────────────────────────────────────┤
-│                 GPU Acceleration Layer                  │
-│  ┌─────────────────┐  ┌─────────────────────────────┐   │
-│  │  ONNX Runtime   │  │       DirectML              │   │
-│  └─────────────────┘  └─────────────────────────────┘   │
-├─────────────────────────────────────────────────────────┤
-│               Consistency Verification                  │
-└─────────────────────────────────────────────────────────┘
-```
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- MIT License ([LICENSE-MIT](LICENSE-MIT))
