@@ -3,18 +3,16 @@
 //! Provides consistent training infrastructure for behavioral patterns,
 //! environmental adaptation, and policy learning with structural-relational focus.
 
-pub mod types;
 pub mod adaptation_learner;
+pub mod types;
 
-pub use types::*;
 pub use adaptation_learner::{
     AdaptationLearner, AdaptationMemory, MetaController, RelationalAdapter, StructuralAdapter,
 };
+pub use types::*;
 
-use crate::{
-    AdaptationConfig, BehaviorPattern, LonebothResult, PolicyNetwork, TrainingConfig,
-};
-use burn::lr_scheduler::{LrScheduler, StepLrScheduler, StepLrSchedulerConfig};
+use crate::{AdaptationConfig, BehaviorPattern, LonebothResult, PolicyNetwork, TrainingConfig};
+use burn::lr_scheduler::{LrScheduler, StepLrSchedulerConfig};
 use burn::optim::AdamConfig;
 use burn::prelude::*;
 use burn::tensor::Device;
