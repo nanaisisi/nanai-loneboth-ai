@@ -64,7 +64,7 @@ impl<B: Backend> Environment<B> {
     pub fn new(config: &EnvironmentConfig) -> LonebothResult<Self> {
         info!("Initializing Environment with config: {:?}", config);
 
-        let device = Device::default();
+        let device = B::Device::default();
         let initial_observation = Tensor::zeros([1, config.observation_dimension], &device);
         let initial_temporal_context = Tensor::zeros(
             [
@@ -132,9 +132,8 @@ impl<B: Backend> Environment<B> {
 
         let previous_obs = &self.current_state.observation;
         let difference = new_observation.clone() - previous_obs.clone();
-        let magnitude = difference.abs().mean().into_scalar();
-
-        Ok(magnitude)
+        let mag_val: f32 = difference.abs().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        Ok(mag_val)
     }
 
     /// Build temporal context from observation history
@@ -180,7 +179,8 @@ impl<B: Backend> Environment<B> {
         // Detect structural changes requiring adaptation
         let adaptation_signal = self.detect_structural_changes(&structural_patterns)?;
 
-        if adaptation_signal.abs().mean().into_scalar() > self.config.adaptation_threshold {
+        let val: f32 = adaptation_signal.clone().abs().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        if val > self.config.adaptation_threshold {
             self.adaptation_count += 1;
             warn!(
                 "Structural adaptation required, event #{}",
@@ -271,7 +271,11 @@ impl<B: Backend> Environment<B> {
             ));
         }
 
-        let tensor = Tensor::from_floats([observation.data.as_slice()], &self.device);
+        let tensor_data = burn::tensor::TensorData::new(
+            observation.data.clone(),
+            [1, observation.data.len()],
+        );
+        let tensor = Tensor::from_data(tensor_data, &self.device);
         Ok(tensor)
     }
 }

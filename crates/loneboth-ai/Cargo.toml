@@ -1,0 +1,50 @@
+[package]
+name = "loneboth-ai"
+version.workspace = true
+edition.workspace = true
+description = "AI framework for individual and group coordination with GPU/GNA acceleration"
+license.workspace = true
+authors.workspace = true
+repository = "https://github.com/nanaisisi/nanai-loneboth-ai"
+readme = "README.md"
+keywords = ["ai", "machine-learning", "gpu", "gna", "homeostasis"]
+categories = ["science", "algorithms"]
+
+[lib]
+name = "nanai_loneboth_ai"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nanai-loneboth-ai"
+path = "src/main.rs"
+
+[features]
+default = ["wgpu"]
+gna = ["dep:nanai-burn-gna"]
+wgpu = ["burn/wgpu"]
+candle = ["burn/candle"]
+
+[dependencies]
+loneboth-core = { path = "../loneboth-core" }
+
+# Burn framework for ML training and inference
+burn = { version = "0.21.0", features = ["train", "std"] }
+nanai-burn-gna = { git = "https://github.com/nanaisisi/nanai-burn-gna.git", branch = "main", optional = true }
+
+# Async runtime
+tokio.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Metrics and monitoring
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# Random number generation
+rand = "0.9"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0"

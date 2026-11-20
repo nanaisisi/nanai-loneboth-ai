@@ -98,7 +98,8 @@ impl<B: Backend> DecisionOptimizer<B> {
             .await?;
 
         // Apply uncertainty-based adjustments
-        let final_action = if uncertainty.mean().into_scalar() > 0.5 {
+        let uncert_val: f32 = uncertainty.mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let final_action = if uncert_val > 0.5 {
             self.apply_conservative_adjustment(refined_action).await?
         } else {
             refined_action
@@ -121,7 +122,8 @@ impl<B: Backend> DecisionOptimizer<B> {
             .detect_adaptation_need(observations)
             .await?;
 
-        if adaptation_signal.mean().into_scalar() > 0.3 {
+        let adapt_val: f32 = adaptation_signal.clone().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        if adapt_val > 0.3 {
             // Apply adaptation to action
             let adapted_action = self
                 .adaptation_controller
@@ -155,16 +157,20 @@ impl<B: Backend> ActionRefiner<B> {
     }
 
     async fn refine(&self, action: Tensor<B, 2>, confidence: f32) -> LonebothResult<Tensor<B, 2>> {
-        let mut refined = self
+        let refined = self
+            .refinement_network
+            .forward(action);
+        let action_refined = refined.clone();
+        let refined = self
             .activation
-            .forward(self.refinement_network.forward(action));
-        refined = self
+            .forward(refined);
+        let refined = self
             .activation
             .forward(self.constraint_layer.forward(refined));
         let final_action = self.optimization_layer.forward(refined);
 
         // Apply confidence-based scaling
-        let confidence_tensor = Tensor::full([1, 1], confidence, &action.device());
+        let confidence_tensor = Tensor::full([1, 1], confidence, &action_refined.device());
         let scaled_action = final_action * confidence_tensor;
 
         Ok(scaled_action)

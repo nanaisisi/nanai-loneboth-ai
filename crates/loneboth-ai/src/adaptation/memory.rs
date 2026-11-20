@@ -47,7 +47,7 @@ impl<B: Backend> AdaptationMemorySystem<B> {
 
     pub(crate) async fn find_similar_pattern(
         &self,
-        _analysis: &AdaptationAnalysis,
+        _analysis: &AdaptationAnalysis<B>,
     ) -> LonebothResult<Option<AdaptationPattern<B>>> {
         Ok(None)
     }

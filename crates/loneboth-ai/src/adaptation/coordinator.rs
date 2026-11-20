@@ -64,7 +64,7 @@ impl<B: Backend> MetaAdaptationCoordinator<B> {
 
     pub(crate) async fn plan_adaptation(
         &self,
-        _analysis: &AdaptationAnalysis,
+        _analysis: &AdaptationAnalysis<B>,
         _pattern: Option<AdaptationPattern<B>>,
     ) -> LonebothResult<AdaptationStrategy> {
         Ok(AdaptationStrategy {

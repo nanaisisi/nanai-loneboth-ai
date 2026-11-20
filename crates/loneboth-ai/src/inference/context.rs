@@ -61,12 +61,11 @@ impl<B: Backend> ContextTracker<B> {
 
     fn extract_context_features(&self, observations: &Tensor<B, 2>) -> LonebothResult<Vec<f32>> {
         // Extract statistical features from observations
-        let mean = observations.mean().into_scalar();
-        let std = observations.var(1).sqrt().mean().into_scalar();
-        let max = observations.max_dim(1).into_scalar();
-        let min = observations.min_dim(1).into_scalar();
-
-        Ok(vec![mean, std, max, min])
+        let mean_f: f32 = observations.clone().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let std_f: f32 = observations.clone().var(1).sqrt().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let max_f: f32 = observations.clone().max_dim(1).into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let min_f: f32 = observations.clone().min_dim(1).into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        Ok(vec![mean_f, std_f, max_f, min_f])
     }
 
     fn compute_evolution_rate(&self) -> LonebothResult<f32> {
@@ -90,7 +89,7 @@ impl<B: Backend> ContextTracker<B> {
 impl<B: Backend> ContextEvolutionPredictor<B> {
     fn new() -> Self {
         // Placeholder initialization
-        let device = Device::default();
+        let device = B::Device::default();
         Self {
             evolution_network: burn::nn::LinearConfig::new(4, 8).init(&device),
             prediction_network: burn::nn::LinearConfig::new(8, 4).init(&device),

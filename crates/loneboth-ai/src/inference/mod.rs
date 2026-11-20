@@ -151,7 +151,7 @@ impl<B: Backend> InferenceEngine<B> {
         if self.config.real_time_adaptation {
             let adapted_action = self
                 .decision_optimizer
-                .apply_realtime_adaptation(optimized_action, observations)
+                .apply_realtime_adaptation(optimized_action, observations.clone())
                 .await?;
 
             // Cache result if caching is enabled
