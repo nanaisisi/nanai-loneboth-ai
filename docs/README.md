@@ -19,6 +19,7 @@ Loneboth AI is an action-oriented neural framework built on [Burn](https://burn.
 - [Architecture Design](architecture.md) - High-level system structure, components, and data flow.
 - [API Reference](api.md) - Detailed API interfaces, configuration options, and type definitions.
 - [Getting Started Guide](getting_started.md) - Setup instructions, backend configuration, and end-to-end examples.
+- [AI Operation System](ai_operation_system.md) - 操作系・Action Space・プロセス統御仕様書
 
 ## Basic Usage Example
 
