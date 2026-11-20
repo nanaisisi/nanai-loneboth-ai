@@ -61,7 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'pending')",
                     rusqlite::params![
                         pulse.id,
-                        pulse.timestamp.to_rfc3339(),
+                        pulse.timestamp.to_string(),
                         pulse.source,
                         pulse.vector.tension,
                         pulse.vector.pulse_hz,
@@ -123,7 +123,7 @@ async fn receive_pulse(
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'pending')",
             rusqlite::params![
                 pulse.id,
-                pulse.timestamp.to_rfc3339(),
+                pulse.timestamp.to_string(),
                 pulse.source,
                 pulse.vector.tension,
                 pulse.vector.pulse_hz,

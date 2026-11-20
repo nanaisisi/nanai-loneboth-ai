@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 use serde::{Deserialize, Serialize};
 
 /// 機械の生理・身体感覚を表す四元素物理ベクトル（In-Sensation）
@@ -29,7 +29,7 @@ impl Default for SensationVector {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SensationPulse {
     pub id: String,
-    pub timestamp: DateTime<Utc>,
+    pub timestamp: Timestamp,
     pub source: String,
     pub vector: SensationVector,
     /// 身体の叫び・生波形・バイナリ断片などの非言語痕跡
@@ -38,9 +38,10 @@ pub struct SensationPulse {
 
 impl SensationPulse {
     pub fn new(source: impl Into<String>, vector: SensationVector, raw_imprint: Vec<u8>) -> Self {
+        let now = Timestamp::now();
         Self {
-            id: format!("pulse_{}_{}", Utc::now().timestamp_millis(), fastrand_hex(6)),
-            timestamp: Utc::now(),
+            id: format!("pulse_{}_{}", now.as_millisecond(), fastrand_hex(6)),
+            timestamp: now,
             source: source.into(),
             vector,
             raw_imprint,
