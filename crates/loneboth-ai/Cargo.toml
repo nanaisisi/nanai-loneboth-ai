@@ -19,7 +19,7 @@ name = "nanai-loneboth-ai"
 path = "src/main.rs"
 
 [features]
-default = []
+default = ["wgpu"]
 gna = ["dep:nanai-burn-gna"]
 wgpu = ["burn/wgpu"]
 candle = ["burn/candle"]

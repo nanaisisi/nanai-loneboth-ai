@@ -3,6 +3,7 @@
 //! Provides hardware-accelerated low-power inference using Intel GNA via `nanai-burn-gna`.
 
 use anyhow::{Result, anyhow};
+#[cfg(feature = "gna")]
 use nanai_burn_gna::{GnaBackend, GnaDevice, GnaLibrary};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
@@ -31,6 +32,7 @@ impl Default for GnaConfig {
 /// GNA accelerator managing device detection, capability inspection, and execution
 pub struct GnaAccelerator {
     config: GnaConfig,
+    #[cfg(feature = "gna")]
     device: GnaDevice,
     available: bool,
 }
@@ -45,6 +47,7 @@ impl GnaAccelerator {
             ));
         }
 
+        #[cfg(feature = "gna")]
         let device = GnaDevice::new(config.device_index);
         info!(
             device_index = config.device_index,
@@ -54,6 +57,7 @@ impl GnaAccelerator {
 
         Ok(Self {
             config,
+            #[cfg(feature = "gna")]
             device,
             available,
         })
@@ -61,22 +65,36 @@ impl GnaAccelerator {
 
     /// Check whether GNA runtime library can be loaded and devices are accessible
     pub fn check_availability() -> bool {
-        match GnaLibrary::load_default() {
-            Ok(lib) => {
-                let count = GnaDevice::get_count(&lib).unwrap_or(0);
-                debug!("GNA library loaded successfully. Available device count: {count}");
-                count > 0
+        #[cfg(feature = "gna")]
+        {
+            match GnaLibrary::load_default() {
+                Ok(lib) => {
+                    let count = GnaDevice::get_count(&lib).unwrap_or(0);
+                    debug!("GNA library loaded successfully. Available device count: {count}");
+                    count > 0
+                }
+                Err(err) => {
+                    debug!("GNA library unavailable: {err}");
+                    false
+                }
             }
-            Err(err) => {
-                debug!("GNA library unavailable: {err}");
-                false
-            }
+        }
+        #[cfg(not(feature = "gna"))]
+        {
+            false
         }
     }
 
     /// Get the count of available GNA hardware devices
     pub fn device_count() -> usize {
-        <GnaBackend as burn::tensor::backend::Backend>::device_count(0x474e)
+        #[cfg(feature = "gna")]
+        {
+            <GnaBackend as burn::tensor::backend::Backend>::device_count(0x474e)
+        }
+        #[cfg(not(feature = "gna"))]
+        {
+            0
+        }
     }
 
     /// Check if GNA is currently available
@@ -84,9 +102,10 @@ impl GnaAccelerator {
         self.available
     }
 
+    #[cfg(feature = "gna")]
     /// Get underlying Burn GnaDevice
     pub fn device(&self) -> GnaDevice {
-        self.device
+        self.device.clone()
     }
 
     /// Get current configuration

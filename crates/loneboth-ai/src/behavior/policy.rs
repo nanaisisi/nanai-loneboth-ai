@@ -135,7 +135,7 @@ impl<B: Backend> PolicyHead<B> {
         }
 
         // Apply softmax for action probabilities
-        self.action_distribution.forward(x).softmax(1)
+        burn::tensor::activation::softmax(self.action_distribution.forward(x), 1)
     }
 }
 

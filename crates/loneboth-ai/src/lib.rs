@@ -4,10 +4,12 @@
 //! environmental adaptation, and structural-relational execution patterns.
 
 use anyhow::Result;
-use burn::backend::{Autodiff, Candle, Wgpu};
+use burn::backend::{Autodiff, Wgpu};
+#[cfg(feature = "candle")]
+use burn::backend::Candle;
 use burn::tensor::{Device, Tensor};
 use serde::{Deserialize, Serialize};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 pub mod adaptation;
 pub mod behavior;
@@ -22,11 +24,12 @@ pub use core::{ActionExecutor, StructuralContext};
 pub use environment::{Environment, EnvironmentState, Observation};
 pub use gna::{GnaAccelerator, GnaConfig};
 pub use inference::{DecisionMaker, InferenceEngine};
+#[cfg(feature = "gna")]
 pub use nanai_burn_gna::{GnaBackend, GnaDevice};
 pub use training::{AdaptationLearner, TrainingPipeline};
 
 /// Backend type aliases for clarity
-pub type Backend = Candle<f32>;
+pub type Backend = Wgpu<f32, i32>;
 pub type AutodiffBackend = Autodiff<Backend>;
 
 /// Main result type with enhanced error context
@@ -182,14 +185,21 @@ impl<B: burn::prelude::Backend> LonebothAI<B> {
         observation: Tensor<B, 2>,
     ) -> LonebothResult<Tensor<B, 2>> {
         // Update environmental context
-        let env_state = self.environment.update_state(observation).await?;
+        let env_state = {
+            let updated = self.environment.update_state(observation).await?;
+            updated.clone()
+        };
 
         // Execute action through unified pipeline
         let action = self.executor.execute(&env_state).await?;
 
         // Adapt based on execution results if needed
-        if self.should_adapt(&env_state)? {
-            self.adapt_to_environment(&env_state, &action).await?;
+        let should_adapt = self.should_adapt(&env_state)?;
+        if should_adapt {
+            let action_res = self.adapt_to_environment(&env_state, &action).await;
+            if let Err(e) = action_res {
+                warn!("Adaptation failed: {e}");
+            }
         }
 
         Ok(action)

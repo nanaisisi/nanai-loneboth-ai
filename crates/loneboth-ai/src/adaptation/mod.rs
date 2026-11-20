@@ -144,7 +144,7 @@ impl<B: Backend> AdaptationSystem<B> {
     async fn analyze_adaptation_needs(
         &self,
         env_state: &EnvironmentState<B>,
-    ) -> LonebothResult<AdaptationAnalysis> {
+    ) -> LonebothResult<AdaptationAnalysis<B>> {
         debug!("Analyzing adaptation needs");
 
         // Structural analysis
@@ -161,11 +161,11 @@ impl<B: Backend> AdaptationSystem<B> {
 
         // Combine analyses
         Ok(AdaptationAnalysis {
+            complexity: self.compute_complexity(&structural_needs, &relational_needs)?,
+            environmental_context: env_state.clone(),
             structural_requirements: structural_needs,
             relational_requirements: relational_needs,
             urgency: self.compute_urgency(env_state)?,
-            complexity: self.compute_complexity(&structural_needs, &relational_needs)?,
-            environmental_context: env_state.clone(),
         })
     }
 

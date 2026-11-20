@@ -151,12 +151,12 @@ pub enum FailureReason {
 
 /// Adaptation analysis result
 #[derive(Debug, Clone)]
-pub struct AdaptationAnalysis {
+pub struct AdaptationAnalysis<B: Backend> {
     pub structural_requirements: StructuralNeeds,
     pub relational_requirements: RelationalNeeds,
     pub urgency: f32,
     pub complexity: f32,
-    pub environmental_context: EnvironmentState<crate::Backend>,
+    pub environmental_context: EnvironmentState<B>,
 }
 
 /// Structural adaptation needs

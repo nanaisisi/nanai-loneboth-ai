@@ -12,7 +12,8 @@ pub use adaptation_learner::{
 pub use types::*;
 
 use crate::{AdaptationConfig, BehaviorPattern, LonebothResult, PolicyNetwork, TrainingConfig};
-use burn::lr_scheduler::{LrScheduler, StepLrSchedulerConfig};
+use burn::lr_scheduler::LrScheduler;
+use burn::lr_scheduler::step::{StepLrScheduler, StepLrSchedulerConfig};
 use burn::optim::AdamConfig;
 use burn::prelude::*;
 use burn::tensor::Device;
@@ -81,7 +82,9 @@ impl<B: Backend> TrainingPipeline<B> {
 
         // Configure learning rate scheduler
         let lr_scheduler =
-            StepLrSchedulerConfig::new(adaptation_config.learning_rate, 0.95, 100).init();
+            StepLrSchedulerConfig::new(adaptation_config.learning_rate, 100)
+                .init()
+                .map_err(|e| anyhow::anyhow!("{e}"))?;
 
         Ok(Self {
             policy_network,
@@ -132,14 +135,15 @@ impl<B: Backend> TrainingPipeline<B> {
 
             for (batch_idx, batch) in training_batches.iter().enumerate() {
                 // Forward pass through policy network
-                let (action_probs, state_values) =
-                    self.policy_network.forward(batch.states.clone())?;
+                let state_2d = batch.states.clone().squeeze::<2>();
+                let (action_probs, state_value) =
+                    self.policy_network.forward(state_2d)?;
 
                 // Compute policy loss
                 let policy_loss = self.compute_policy_loss(&action_probs, &batch.actions)?;
 
                 // Compute value loss
-                let value_loss = self.compute_value_loss(&state_values, &batch.rewards)?;
+                let value_loss = self.compute_value_loss(&state_value, &batch.rewards)?;
 
                 // Combined loss
                 let total_loss = policy_loss + value_loss;
@@ -150,7 +154,8 @@ impl<B: Backend> TrainingPipeline<B> {
                 // Adaptation learning if needed
                 let adaptation_result = self.apply_adaptation_learning(batch).await?;
 
-                epoch_loss += total_loss.into_scalar();
+                let loss_val: f32 = total_loss.into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+                epoch_loss += loss_val;
 
                 // Compute accuracy (simplified)
                 let accuracy = self.compute_accuracy(&action_probs, &batch.actions)?;
@@ -169,8 +174,8 @@ impl<B: Backend> TrainingPipeline<B> {
                         "Batch {}/{}, Loss: {:.4}, Accuracy: {:.4}",
                         batch_idx + 1,
                         batch_count,
-                        total_loss.into_scalar(),
-                        accuracy
+                        loss_val,
+                        accuracy,
                     );
                 }
             }
@@ -257,8 +262,8 @@ impl<B: Backend> TrainingPipeline<B> {
             let mut actions = Vec::new();
 
             for (state, action) in chunk {
-                states.push(state.clone().unsqueeze::<3>(0));
-                actions.push(action.clone().unsqueeze::<3>(0));
+                states.push(state.clone().unsqueeze::<3>());
+                actions.push(action.clone().unsqueeze::<3>());
             }
 
             let batch_states = Tensor::cat(states, 0);
@@ -287,8 +292,12 @@ impl<B: Backend> TrainingPipeline<B> {
         predictions: &Tensor<B, 2>,
         targets: &Tensor<B, 3>,
     ) -> LonebothResult<Tensor<B, 1>> {
-        let targets_2d = targets.clone().squeeze::<2>(1);
-        let loss = predictions.clone().mse_loss(targets_2d);
+        let targets_2d = targets.clone().squeeze::<2>();
+        let loss = burn::nn::loss::MseLoss::new().forward(
+            predictions.clone(),
+            targets_2d,
+            burn::nn::loss::Reduction::Mean,
+        );
         Ok(loss)
     }
 
@@ -298,7 +307,11 @@ impl<B: Backend> TrainingPipeline<B> {
         predictions: &Tensor<B, 2>,
         targets: &Tensor<B, 2>,
     ) -> LonebothResult<Tensor<B, 1>> {
-        let loss = predictions.clone().mse_loss(targets.clone());
+        let loss = burn::nn::loss::MseLoss::new().forward(
+            predictions.clone(),
+            targets.clone(),
+            burn::nn::loss::Reduction::Mean,
+        );
         Ok(loss)
     }
 
@@ -316,8 +329,8 @@ impl<B: Backend> TrainingPipeline<B> {
             let state = batch.states.clone().slice([i..i + 1]);
             let action = batch.actions.clone().slice([i..i + 1]);
 
-            let state_2d = state.squeeze::<2>(0);
-            let action_2d = action.squeeze::<2>(0);
+            let state_2d = state.squeeze::<2>();
+            let action_2d = action.squeeze::<2>();
 
             // Recognize behavioral pattern
             let (pattern_type, confidence) =
@@ -326,10 +339,14 @@ impl<B: Backend> TrainingPipeline<B> {
             // Generate expected action for this pattern
             let expected_action = self
                 .behavior_learner
-                .generate_action(&pattern_type, state_2d)?;
+                .generate_action(&pattern_type, state_2d.clone())?;
 
             // Compute behavioral loss
-            let behavior_loss = expected_action.mse_loss(action_2d).into_scalar();
+            let behavior_loss: f32 = burn::nn::loss::MseLoss::new().forward(
+                expected_action,
+                action_2d.clone(),
+                burn::nn::loss::Reduction::Mean,
+            ).into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
             total_loss += behavior_loss * confidence;
 
             // Update behavioral memory
@@ -388,9 +405,9 @@ impl<B: Backend> TrainingPipeline<B> {
         predictions: &Tensor<B, 2>,
         targets: &Tensor<B, 3>,
     ) -> LonebothResult<f32> {
-        let targets_2d = targets.clone().squeeze::<2>(1);
+        let targets_2d = targets.clone().squeeze::<2>();
         let diff = (predictions.clone() - targets_2d).abs();
-        let accuracy = 1.0 - diff.mean().into_scalar().min(1.0);
+        let accuracy: f32 = 1.0 - diff.mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0).min(1.0);
         Ok(accuracy)
     }
 

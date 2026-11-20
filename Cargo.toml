@@ -4,6 +4,7 @@ members = [
     "crates/loneboth-core",
     "crates/loneboth-daemon",
     "crates/loneboth-client",
+    "crates/loneboth-ai",
 ]
 
 [workspace.package]
