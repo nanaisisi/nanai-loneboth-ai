@@ -1,0 +1,23 @@
+[Unit]
+Description=loneboth resident daemon (Sensation Queue Core)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=loneboth
+Group=loneboth
+WorkingDirectory=/var/lib/loneboth
+ExecStart=/opt/loneboth/bin/loneboth-daemon
+Restart=always
+RestartSec=5s
+Environment=LONEBOTH_DB_PATH=/var/lib/loneboth/queue.sqlite
+Environment=LONEBOTH_BIND=100.100.42.107:8080
+Environment=RUST_LOG=info,loneboth_daemon=debug
+
+# Resource limits & sandboxing
+LimitNOFILE=65535
+MemoryMax=1G
+
+[Install]
+WantedBy=multi-user.target
