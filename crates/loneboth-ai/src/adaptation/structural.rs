@@ -1,6 +1,9 @@
 //! Structural adaptation controller and networks
 
-use super::types::{ComponentValidation, StructuralAdaptationResult, StructuralChange, StructuralNeeds, StructuralPlan};
+use super::types::{
+    ComponentValidation, StructuralAdaptationResult, StructuralChange, StructuralNeeds,
+    StructuralPlan,
+};
 use crate::{EnvironmentState, LonebothResult, SystemConfig};
 use burn::prelude::*;
 use burn::tensor::Device;

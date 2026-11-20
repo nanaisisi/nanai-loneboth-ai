@@ -1,9 +1,9 @@
 use axum::{
+    Json, Router,
     extract::State,
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
 };
 use loneboth_core::{SensationPulse, SensationVector};
 use rusqlite::Connection;
@@ -146,7 +146,13 @@ async fn drain_pulses(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         "SELECT payload_json FROM pulses WHERE status = 'pending' ORDER BY timestamp ASC LIMIT 50",
     ) {
         Ok(s) => s,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, Json::<Vec<SensationPulse>>(vec![])).into_response(),
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json::<Vec<SensationPulse>>(vec![]),
+            )
+                .into_response();
+        }
     };
 
     let rows = stmt.query_map([], |row| {

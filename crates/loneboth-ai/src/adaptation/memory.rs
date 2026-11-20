@@ -1,6 +1,8 @@
 //! Adaptation memory system and pattern storage
 
-use super::types::{AdaptationAnalysis, AdaptationFailure, AdaptationPattern, AdaptationStrategy, ValidationResult};
+use super::types::{
+    AdaptationAnalysis, AdaptationFailure, AdaptationPattern, AdaptationStrategy, ValidationResult,
+};
 use crate::{EnvironmentState, LonebothResult, SystemConfig};
 use burn::prelude::*;
 use burn::tensor::Device;

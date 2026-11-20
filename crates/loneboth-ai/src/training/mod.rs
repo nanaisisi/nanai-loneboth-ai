@@ -81,10 +81,9 @@ impl<B: Backend> TrainingPipeline<B> {
         let adaptation_optimizer = AdamConfig::new().with_beta_1(0.95).with_beta_2(0.999);
 
         // Configure learning rate scheduler
-        let lr_scheduler =
-            StepLrSchedulerConfig::new(adaptation_config.learning_rate, 100)
-                .init()
-                .map_err(|e| anyhow::anyhow!("{e}"))?;
+        let lr_scheduler = StepLrSchedulerConfig::new(adaptation_config.learning_rate, 100)
+            .init()
+            .map_err(|e| anyhow::anyhow!("{e}"))?;
 
         Ok(Self {
             policy_network,
@@ -136,8 +135,7 @@ impl<B: Backend> TrainingPipeline<B> {
             for (batch_idx, batch) in training_batches.iter().enumerate() {
                 // Forward pass through policy network
                 let state_2d = batch.states.clone().squeeze::<2>();
-                let (action_probs, state_value) =
-                    self.policy_network.forward(state_2d)?;
+                let (action_probs, state_value) = self.policy_network.forward(state_2d)?;
 
                 // Compute policy loss
                 let policy_loss = self.compute_policy_loss(&action_probs, &batch.actions)?;
@@ -154,7 +152,11 @@ impl<B: Backend> TrainingPipeline<B> {
                 // Adaptation learning if needed
                 let adaptation_result = self.apply_adaptation_learning(batch).await?;
 
-                let loss_val: f32 = total_loss.into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+                let loss_val: f32 = total_loss
+                    .into_data()
+                    .as_slice::<f32>()
+                    .map(|s| s[0])
+                    .unwrap_or(0.0);
                 epoch_loss += loss_val;
 
                 // Compute accuracy (simplified)
@@ -342,11 +344,16 @@ impl<B: Backend> TrainingPipeline<B> {
                 .generate_action(&pattern_type, state_2d.clone())?;
 
             // Compute behavioral loss
-            let behavior_loss: f32 = burn::nn::loss::MseLoss::new().forward(
-                expected_action,
-                action_2d.clone(),
-                burn::nn::loss::Reduction::Mean,
-            ).into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+            let behavior_loss: f32 = burn::nn::loss::MseLoss::new()
+                .forward(
+                    expected_action,
+                    action_2d.clone(),
+                    burn::nn::loss::Reduction::Mean,
+                )
+                .into_data()
+                .as_slice::<f32>()
+                .map(|s| s[0])
+                .unwrap_or(0.0);
             total_loss += behavior_loss * confidence;
 
             // Update behavioral memory
@@ -407,7 +414,14 @@ impl<B: Backend> TrainingPipeline<B> {
     ) -> LonebothResult<f32> {
         let targets_2d = targets.clone().squeeze::<2>();
         let diff = (predictions.clone() - targets_2d).abs();
-        let accuracy: f32 = 1.0 - diff.mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0).min(1.0);
+        let accuracy: f32 = 1.0
+            - diff
+                .mean()
+                .into_data()
+                .as_slice::<f32>()
+                .map(|s| s[0])
+                .unwrap_or(0.0)
+                .min(1.0);
         Ok(accuracy)
     }
 

@@ -3,22 +3,13 @@
 //! Implements real-time adaptation mechanisms for structural and relational changes,
 //! using burn for consistent neural network adaptation and environmental awareness.
 
-pub mod types;
-pub mod structural;
-pub mod relational;
 pub mod coordinator;
 pub mod memory;
 pub mod monitoring;
+pub mod relational;
+pub mod structural;
+pub mod types;
 
-pub use types::*;
-pub use structural::{
-    AdaptationDecider, StructuralAdaptationController, StructureAnalyzer, StructureModifier,
-    ValidationNetwork,
-};
-pub use relational::{
-    CoherenceValidator, InteractionPatternDetector, RelationalAdaptationController,
-    RelationshipAnalyzer, RelationshipModifier,
-};
 pub use coordinator::{
     AdaptationPlanner, ConflictResolver, CrossLevelCoordination, MetaAdaptationCoordinator,
     PriorityManager,
@@ -27,6 +18,15 @@ pub use memory::{AdaptationMemorySystem, PatternRetriever, TrendAnalyzer};
 pub use monitoring::{
     AdaptationMonitoringSystem, AlertingSystem, AnomalyDetector, ImpactAssessor, MetricsTracker,
 };
+pub use relational::{
+    CoherenceValidator, InteractionPatternDetector, RelationalAdaptationController,
+    RelationshipAnalyzer, RelationshipModifier,
+};
+pub use structural::{
+    AdaptationDecider, StructuralAdaptationController, StructureAnalyzer, StructureModifier,
+    ValidationNetwork,
+};
+pub use types::*;
 
 use crate::{EnvironmentState, LonebothResult, SystemConfig};
 use burn::prelude::*;

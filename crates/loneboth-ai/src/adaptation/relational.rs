@@ -1,6 +1,9 @@
 //! Relational adaptation controller and networks
 
-use super::types::{ComponentValidation, RelationalAdaptationResult, RelationalChange, RelationalNeeds, RelationalPlan};
+use super::types::{
+    ComponentValidation, RelationalAdaptationResult, RelationalChange, RelationalNeeds,
+    RelationalPlan,
+};
 use crate::{EnvironmentState, LonebothResult, SystemConfig};
 use burn::prelude::*;
 use burn::tensor::Device;

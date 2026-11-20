@@ -132,7 +132,13 @@ impl<B: Backend> Environment<B> {
 
         let previous_obs = &self.current_state.observation;
         let difference = new_observation.clone() - previous_obs.clone();
-        let mag_val: f32 = difference.abs().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let mag_val: f32 = difference
+            .abs()
+            .mean()
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
         Ok(mag_val)
     }
 
@@ -179,7 +185,14 @@ impl<B: Backend> Environment<B> {
         // Detect structural changes requiring adaptation
         let adaptation_signal = self.detect_structural_changes(&structural_patterns)?;
 
-        let val: f32 = adaptation_signal.clone().abs().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let val: f32 = adaptation_signal
+            .clone()
+            .abs()
+            .mean()
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
         if val > self.config.adaptation_threshold {
             self.adaptation_count += 1;
             warn!(
@@ -271,10 +284,8 @@ impl<B: Backend> Environment<B> {
             ));
         }
 
-        let tensor_data = burn::tensor::TensorData::new(
-            observation.data.clone(),
-            [1, observation.data.len()],
-        );
+        let tensor_data =
+            burn::tensor::TensorData::new(observation.data.clone(), [1, observation.data.len()]);
         let tensor = Tensor::from_data(tensor_data, &self.device);
         Ok(tensor)
     }

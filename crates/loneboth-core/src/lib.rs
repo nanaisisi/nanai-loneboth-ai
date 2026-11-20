@@ -68,7 +68,10 @@ pub enum ProcessDesire {
     /// 平穏・沈黙（余力があり、静かに環境を見守る）
     Tranquility,
     /// 忍耐・スロットリング（外部の理不尽な重負荷を受け止め、自らの要求を抑えていなす）
-    Endurance { throttle_factor: f32, drop_non_essential: bool },
+    Endurance {
+        throttle_factor: f32,
+        drop_non_essential: bool,
+    },
     /// 代謝・消化（蓄積した不快や重圧を、バックグラウンドで時間をかけて静かに片付ける）
     Digestion { worker_budget: usize },
     /// 避難・保護（致命的枯渇からコアを守るため、非本質キャッシュを放流して身を縮める）
@@ -83,7 +86,7 @@ impl SensationVector {
         let displeasure = (self.friction * 0.5) + (self.tension * 0.3) + (excess_warmth * 0.5);
         let valence = (1.0 - displeasure.clamp(0.0, 2.0)).clamp(-1.0, 1.0);
         let arousal = ((self.tension * 0.6) + (self.pulse_hz / 60.0 * 0.4)).clamp(0.0, 1.0);
-        
+
         // 大人の理不尽受容: 不快が高くてもパニック（拒絶）せず、受け流すダンピング係数
         let acceptance = (1.0 - (self.friction * 0.3)).clamp(0.4, 1.0);
 
@@ -176,7 +179,8 @@ pub mod native_sampler {
 
         let mut cpu_percent = 10.0f32;
         if unsafe { GetSystemTimes(&mut idle, &mut kernel, &mut user) } != 0 {
-            let filetime_to_u64 = |ft: FILETIME| ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64);
+            let filetime_to_u64 =
+                |ft: FILETIME| ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64);
             let idle_u = filetime_to_u64(idle);
             let kernel_u = filetime_to_u64(kernel);
             let user_u = filetime_to_u64(user);
@@ -197,7 +201,11 @@ pub mod native_sampler {
         let tension = (mem_usage * 0.6 + (cpu_percent / 100.0) * 0.4).clamp(0.0, 1.0);
         let pulse_hz = ((cpu_percent / 10.0).max(0.5)).clamp(0.5, 30.0);
         let warmth = ((cpu_percent / 120.0) + (mem_usage * 0.3)).clamp(0.1, 1.0);
-        let mut friction = if cpu_percent > 85.0 { (cpu_percent - 85.0) / 15.0 } else { 0.0 };
+        let mut friction = if cpu_percent > 85.0 {
+            (cpu_percent - 85.0) / 15.0
+        } else {
+            0.0
+        };
 
         // 非標準: Intel GNA (NPU) デバイス状態のサンプリング
         // 環境変数や DLL ロード可能性、GNA 稼働状態を非標準感覚として統合
@@ -231,11 +239,19 @@ pub mod native_sampler {
             let mut free_kb = 0u64;
             for line in content.lines() {
                 if line.starts_with("MemTotal:") {
-                    if let Some(val) = line.split_whitespace().nth(1).and_then(|s| s.parse::<u64>().ok()) {
+                    if let Some(val) = line
+                        .split_whitespace()
+                        .nth(1)
+                        .and_then(|s| s.parse::<u64>().ok())
+                    {
                         total_kb = val;
                     }
                 } else if line.starts_with("MemAvailable:") || line.starts_with("MemFree:") {
-                    if let Some(val) = line.split_whitespace().nth(1).and_then(|s| s.parse::<u64>().ok()) {
+                    if let Some(val) = line
+                        .split_whitespace()
+                        .nth(1)
+                        .and_then(|s| s.parse::<u64>().ok())
+                    {
                         free_kb = val;
                     }
                 }
@@ -260,11 +276,19 @@ pub mod native_sampler {
             let mut cma_free = 0u64;
             for line in content.lines() {
                 if line.starts_with("CmaTotal:") {
-                    if let Some(val) = line.split_whitespace().nth(1).and_then(|s| s.parse::<u64>().ok()) {
+                    if let Some(val) = line
+                        .split_whitespace()
+                        .nth(1)
+                        .and_then(|s| s.parse::<u64>().ok())
+                    {
                         cma_total = val;
                     }
                 } else if line.starts_with("CmaFree:") {
-                    if let Some(val) = line.split_whitespace().nth(1).and_then(|s| s.parse::<u64>().ok()) {
+                    if let Some(val) = line
+                        .split_whitespace()
+                        .nth(1)
+                        .and_then(|s| s.parse::<u64>().ok())
+                    {
                         cma_free = val;
                     }
                 }
@@ -278,7 +302,11 @@ pub mod native_sampler {
         let tension = (mem_tension * 0.5 + (cpu_load * 0.5)).clamp(0.0, 1.0);
         let pulse_hz = (cpu_load * 5.0).max(0.5).clamp(0.5, 30.0);
         let warmth = temp_warmth;
-        let mut friction = if cpu_load > 1.2 { (cpu_load - 1.2).clamp(0.0, 1.0) } else { 0.0 };
+        let mut friction = if cpu_load > 1.2 {
+            (cpu_load - 1.2).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         friction = (friction + cma_friction).clamp(0.0, 1.0);
 
         SensationVector {

@@ -1,6 +1,9 @@
 //! Coordinator and coordination network for adaptation
 
-use super::types::{AdaptationAnalysis, AdaptationPattern, AdaptationStrategy, CoordinationPlan, RelationalPlan, StructuralPlan};
+use super::types::{
+    AdaptationAnalysis, AdaptationPattern, AdaptationStrategy, CoordinationPlan, RelationalPlan,
+    StructuralPlan,
+};
 use crate::{LonebothResult, SystemConfig};
 use burn::prelude::*;
 use burn::tensor::Device;

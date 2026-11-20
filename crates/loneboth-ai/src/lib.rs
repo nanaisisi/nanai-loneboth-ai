@@ -4,9 +4,9 @@
 //! environmental adaptation, and structural-relational execution patterns.
 
 use anyhow::Result;
-use burn::backend::{Autodiff, Wgpu};
 #[cfg(feature = "candle")]
 use burn::backend::Candle;
+use burn::backend::{Autodiff, Wgpu};
 use burn::tensor::{Device, Tensor};
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};

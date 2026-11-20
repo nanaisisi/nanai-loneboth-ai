@@ -3,7 +3,11 @@ use loneboth_core::{ProcessDesire, SensationPulse, SensationVector};
 use tracing::{error, info};
 
 #[derive(Parser, Debug)]
-#[command(name = "loneboth", version, about = "Non-verbal sensation metabolism & resonance client for PC (doragtya)")]
+#[command(
+    name = "loneboth",
+    version,
+    about = "Non-verbal sensation metabolism & resonance client for PC (doragtya)"
+)]
 struct Cli {
     #[arg(short, long, default_value = "http://100.100.42.107:8080")]
     strela_url: String,
@@ -41,8 +45,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
     match cli.command {
-        Commands::Inject { source, tension, pulse_hz, warmth, friction } => {
-            let vector = SensationVector { tension, pulse_hz, warmth, friction };
+        Commands::Inject {
+            source,
+            tension,
+            pulse_hz,
+            warmth,
+            friction,
+        } => {
+            let vector = SensationVector {
+                tension,
+                pulse_hz,
+                warmth,
+                friction,
+            };
             let raw_imprint = vec![0xDE, 0xAD, 0xBE, 0xEF]; // 身体の生バイナリ痕跡
             let pulse = SensationPulse::new(source, vector, raw_imprint);
 
@@ -58,7 +73,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let url = format!("{}/sensation/pending", cli.strela_url);
             let res = client.get(&url).send().await?;
             if !res.status().is_success() {
-                error!("Failed to fetch pending sensations from strela: {}", res.status());
+                error!(
+                    "Failed to fetch pending sensations from strela: {}",
+                    res.status()
+                );
                 return Ok(());
             }
 
@@ -67,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             for pulse in pulses {
                 let homeostasis = pulse.vector.evaluate_homeostasis();
-                
+
                 info!(
                     id = %pulse.id,
                     tension = format!("{:.2}", pulse.vector.tension),
@@ -84,7 +102,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 if ack {
                     let ack_url = format!("{}/sensation/ack", cli.strela_url);
-                    let _ = client.post(&ack_url).json(&serde_json::json!({ "id": pulse.id })).send().await;
+                    let _ = client
+                        .post(&ack_url)
+                        .json(&serde_json::json!({ "id": pulse.id }))
+                        .send()
+                        .await;
                 }
             }
         }
@@ -97,18 +119,25 @@ fn actuate_process_desire(desire: &ProcessDesire) {
     #[cfg(target_os = "windows")]
     {
         use windows_sys::Win32::System::Threading::{
-            GetCurrentProcess, SetPriorityClass,
-            IDLE_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS,
+            BELOW_NORMAL_PRIORITY_CLASS, GetCurrentProcess, IDLE_PRIORITY_CLASS,
+            NORMAL_PRIORITY_CLASS, SetPriorityClass,
         };
         let handle = unsafe { GetCurrentProcess() };
         match desire {
             ProcessDesire::Tranquility => {
-                unsafe { SetPriorityClass(handle, NORMAL_PRIORITY_CLASS); }
+                unsafe {
+                    SetPriorityClass(handle, NORMAL_PRIORITY_CLASS);
+                }
                 info!("[PROCESS GOVERNANCE] Tranquility: Normal priority, resting pulse");
             }
-            ProcessDesire::Endurance { throttle_factor, drop_non_essential } => {
+            ProcessDesire::Endurance {
+                throttle_factor,
+                drop_non_essential,
+            } => {
                 // 大人の忍耐: 理不尽な負荷を受け止め、自ら優先度を落として静かにいなす
-                unsafe { SetPriorityClass(handle, IDLE_PRIORITY_CLASS); }
+                unsafe {
+                    SetPriorityClass(handle, IDLE_PRIORITY_CLASS);
+                }
                 info!(
                     throttle_factor,
                     drop_non_essential,
@@ -116,15 +145,21 @@ fn actuate_process_desire(desire: &ProcessDesire) {
                 );
             }
             ProcessDesire::Digestion { worker_budget } => {
-                unsafe { SetPriorityClass(handle, BELOW_NORMAL_PRIORITY_CLASS); }
+                unsafe {
+                    SetPriorityClass(handle, BELOW_NORMAL_PRIORITY_CLASS);
+                }
                 info!(
                     worker_budget,
                     "[PROCESS GOVERNANCE] Digestion: Absorbing residue lazily in background"
                 );
             }
             ProcessDesire::Sheltering => {
-                unsafe { SetPriorityClass(handle, IDLE_PRIORITY_CLASS); }
-                info!("[PROCESS GOVERNANCE] Sheltering: Evacuating non-essential memory to protect core stability");
+                unsafe {
+                    SetPriorityClass(handle, IDLE_PRIORITY_CLASS);
+                }
+                info!(
+                    "[PROCESS GOVERNANCE] Sheltering: Evacuating non-essential memory to protect core stability"
+                );
             }
         }
     }

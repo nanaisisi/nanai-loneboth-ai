@@ -42,7 +42,10 @@ impl<B: Backend> ContextTracker<B> {
         }
     }
 
-    pub(crate) async fn update_context(&mut self, observations: &Tensor<B, 2>) -> LonebothResult<()> {
+    pub(crate) async fn update_context(
+        &mut self,
+        observations: &Tensor<B, 2>,
+    ) -> LonebothResult<()> {
         // Extract features from observations
         let features = self.extract_context_features(observations)?;
 
@@ -61,10 +64,36 @@ impl<B: Backend> ContextTracker<B> {
 
     fn extract_context_features(&self, observations: &Tensor<B, 2>) -> LonebothResult<Vec<f32>> {
         // Extract statistical features from observations
-        let mean_f: f32 = observations.clone().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
-        let std_f: f32 = observations.clone().var(1).sqrt().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
-        let max_f: f32 = observations.clone().max_dim(1).into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
-        let min_f: f32 = observations.clone().min_dim(1).into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let mean_f: f32 = observations
+            .clone()
+            .mean()
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
+        let std_f: f32 = observations
+            .clone()
+            .var(1)
+            .sqrt()
+            .mean()
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
+        let max_f: f32 = observations
+            .clone()
+            .max_dim(1)
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
+        let min_f: f32 = observations
+            .clone()
+            .min_dim(1)
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
         Ok(vec![mean_f, std_f, max_f, min_f])
     }
 

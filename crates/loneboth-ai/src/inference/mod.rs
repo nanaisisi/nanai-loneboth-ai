@@ -3,18 +3,18 @@
 //! Implements efficient inference pipelines with burn for consistent model execution,
 //! focusing on real-time environmental adaptation and decision optimization.
 
-pub mod types;
 pub mod cache;
-pub mod optimizer;
 pub mod context;
+pub mod optimizer;
+pub mod types;
 
-pub use types::*;
 pub use cache::{CachedPolicyState, PolicyCache};
+pub use context::{ContextEvolutionPredictor, ContextTracker};
 pub use optimizer::{
     ActionRefiner, DecisionOptimizer, MultiStepPlanner, RealtimeAdaptationController,
     UncertaintyEstimator,
 };
-pub use context::{ContextEvolutionPredictor, ContextTracker};
+pub use types::*;
 
 use crate::{BehaviorPattern, InferenceConfig, LonebothResult, PolicyNetwork};
 use burn::prelude::*;

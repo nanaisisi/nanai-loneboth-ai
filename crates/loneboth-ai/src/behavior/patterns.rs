@@ -157,14 +157,28 @@ impl<B: Backend> BehaviorPattern<B> {
 
     /// Compute pattern recognition scores
     fn compute_pattern_scores(&self, features: &Tensor<B, 2>) -> LonebothResult<Vec<f32>> {
-        let mean_f: f32 = features.clone().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
-        let std_f: f32 = features.clone().var(1).sqrt().mean().into_data().as_slice::<f32>().map(|s| s[0]).unwrap_or(0.0);
+        let mean_f: f32 = features
+            .clone()
+            .mean()
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
+        let std_f: f32 = features
+            .clone()
+            .var(1)
+            .sqrt()
+            .mean()
+            .into_data()
+            .as_slice::<f32>()
+            .map(|s| s[0])
+            .unwrap_or(0.0);
 
         let scores = vec![
             (mean_f + std_f) / 2.0, // Exploration
-            mean_f.abs(),                 // Exploitation
-            std_f,                        // Novelty
-            1.0 - std_f,                  // Conservation
+            mean_f.abs(),           // Exploitation
+            std_f,                  // Novelty
+            1.0 - std_f,            // Conservation
         ];
 
         Ok(scores)
