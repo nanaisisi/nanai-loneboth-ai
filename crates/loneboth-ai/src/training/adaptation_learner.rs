@@ -8,63 +8,63 @@ use tracing::{debug, info};
 
 /// Adaptation learning system for environmental changes
 #[derive(Module, Debug)]
-pub struct AdaptationLearner<B: Backend> {
+pub struct AdaptationLearner {
     /// Structural adaptation network
-    structural_adapter: StructuralAdapter<B>,
+    structural_adapter: StructuralAdapter,
     /// Relational adaptation network
-    relational_adapter: RelationalAdapter<B>,
+    relational_adapter: RelationalAdapter,
     /// Meta-learning adaptation controller
-    meta_controller: MetaController<B>,
+    meta_controller: MetaController,
     /// Adaptation memory
-    adaptation_memory: AdaptationMemory<B>,
+    adaptation_memory: AdaptationMemory,
 }
 
 #[derive(Module, Debug)]
-pub struct StructuralAdapter<B: Backend> {
+pub struct StructuralAdapter {
     /// Structure analysis network
-    analysis_network: burn::nn::Linear<B>,
+    analysis_network: burn::nn::Linear,
     /// Adaptation synthesis
-    synthesis_network: burn::nn::Linear<B>,
+    synthesis_network: burn::nn::Linear,
     /// Structure update mechanism
-    update_mechanism: burn::nn::Linear<B>,
+    update_mechanism: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct RelationalAdapter<B: Backend> {
+pub struct RelationalAdapter {
     /// Relation analysis
-    relation_analyzer: burn::nn::Linear<B>,
+    relation_analyzer: burn::nn::Linear,
     /// Relational pattern detector
-    pattern_detector: burn::nn::Linear<B>,
+    pattern_detector: burn::nn::Linear,
     /// Relation update system
-    update_system: burn::nn::Linear<B>,
+    update_system: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct MetaController<B: Backend> {
+pub struct MetaController {
     /// Meta-learning network
-    meta_network: burn::nn::Linear<B>,
+    meta_network: burn::nn::Linear,
     /// Adaptation decision system
-    decision_system: burn::nn::Linear<B>,
+    decision_system: burn::nn::Linear,
     /// Control signal generator
-    control_generator: burn::nn::Linear<B>,
+    control_generator: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct AdaptationMemory<B: Backend> {
+pub struct AdaptationMemory {
     /// Memory encoder
-    encoder: burn::nn::Linear<B>,
+    encoder: burn::nn::Linear,
     /// Memory retrieval
-    retrieval: burn::nn::Linear<B>,
+    retrieval: burn::nn::Linear,
     /// Memory update gate
-    update_gate: burn::nn::Linear<B>,
+    update_gate: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> AdaptationLearner<B> {
-    pub fn new(config: &crate::SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl AdaptationLearner {
+    pub fn new(config: &crate::SystemConfig, device: &Device) -> LonebothResult<Self> {
         info!("Initializing AdaptationLearner");
 
         let obs_dim = config.environment.observation_dimension;
@@ -81,7 +81,7 @@ impl<B: Backend> AdaptationLearner<B> {
     /// Apply structural adaptation
     pub async fn apply_structural_adaptation(
         &mut self,
-        adjustment: Tensor<B, 2>,
+        adjustment: Tensor<2>,
     ) -> LonebothResult<()> {
         debug!("Applying structural adaptation");
         self.structural_adapter.apply_adaptation(adjustment).await
@@ -90,7 +90,7 @@ impl<B: Backend> AdaptationLearner<B> {
     /// Apply relational adaptation
     pub async fn apply_relational_adaptation(
         &mut self,
-        adjustment: Tensor<B, 2>,
+        adjustment: Tensor<2>,
     ) -> LonebothResult<()> {
         debug!("Applying relational adaptation");
         self.relational_adapter.apply_adaptation(adjustment).await
@@ -99,7 +99,7 @@ impl<B: Backend> AdaptationLearner<B> {
     /// Perform comprehensive adaptation
     pub async fn perform_adaptation(
         &mut self,
-        batch: &TrainingBatch<B>,
+        batch: &TrainingBatch,
     ) -> LonebothResult<AdaptationResult> {
         debug!("Performing comprehensive adaptation");
 
@@ -127,8 +127,8 @@ impl<B: Backend> AdaptationLearner<B> {
     }
 }
 
-impl<B: Backend> StructuralAdapter<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl StructuralAdapter {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             analysis_network: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             synthesis_network: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -137,7 +137,7 @@ impl<B: Backend> StructuralAdapter<B> {
         }
     }
 
-    async fn apply_adaptation(&mut self, _adjustment: Tensor<B, 2>) -> LonebothResult<()> {
+    async fn apply_adaptation(&mut self, _adjustment: Tensor<2>) -> LonebothResult<()> {
         Ok(())
     }
 
@@ -152,8 +152,8 @@ impl<B: Backend> StructuralAdapter<B> {
     }
 }
 
-impl<B: Backend> RelationalAdapter<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl RelationalAdapter {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             relation_analyzer: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             pattern_detector: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -162,7 +162,7 @@ impl<B: Backend> RelationalAdapter<B> {
         }
     }
 
-    async fn apply_adaptation(&mut self, _adjustment: Tensor<B, 2>) -> LonebothResult<()> {
+    async fn apply_adaptation(&mut self, _adjustment: Tensor<2>) -> LonebothResult<()> {
         Ok(())
     }
 
@@ -177,8 +177,8 @@ impl<B: Backend> RelationalAdapter<B> {
     }
 }
 
-impl<B: Backend> MetaController<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl MetaController {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             meta_network: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             decision_system: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -189,7 +189,7 @@ impl<B: Backend> MetaController<B> {
 
     async fn analyze_adaptation_need(
         &self,
-        _batch: &TrainingBatch<B>,
+        _batch: &TrainingBatch,
     ) -> LonebothResult<AdaptationAnalysis> {
         Ok(AdaptationAnalysis {
             structural_needs: 0.3,
@@ -199,8 +199,8 @@ impl<B: Backend> MetaController<B> {
     }
 }
 
-impl<B: Backend> AdaptationMemory<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl AdaptationMemory {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             encoder: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             retrieval: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),

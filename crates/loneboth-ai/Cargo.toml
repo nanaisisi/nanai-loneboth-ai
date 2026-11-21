@@ -22,13 +22,12 @@ path = "src/main.rs"
 default = ["wgpu"]
 gna = ["dep:nanai-burn-gna"]
 wgpu = ["burn/wgpu"]
-candle = ["burn/candle"]
 
 [dependencies]
 loneboth-core = { path = "../loneboth-core" }
 
 # Burn framework for ML training and inference
-burn = { version = "0.21.0", features = ["train", "std"] }
+burn = { version = "0.22.1", features = ["train", "std"] }
 nanai-burn-gna = { git = "https://github.com/nanaisisi/nanai-burn-gna.git", branch = "main", optional = true }
 
 # Async runtime

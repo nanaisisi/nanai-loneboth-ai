@@ -7,63 +7,63 @@ use tracing::debug;
 
 /// Decision optimization and action refinement system
 #[derive(Module, Debug)]
-pub struct DecisionOptimizer<B: Backend> {
+pub struct DecisionOptimizer {
     /// Action refinement network
-    action_refiner: ActionRefiner<B>,
+    action_refiner: ActionRefiner,
     /// Uncertainty estimation
-    uncertainty_estimator: UncertaintyEstimator<B>,
+    uncertainty_estimator: UncertaintyEstimator,
     /// Multi-step planning network
-    planner: MultiStepPlanner<B>,
+    planner: MultiStepPlanner,
     /// Real-time adaptation controller
-    adaptation_controller: RealtimeAdaptationController<B>,
+    adaptation_controller: RealtimeAdaptationController,
 }
 
 #[derive(Module, Debug)]
-pub struct ActionRefiner<B: Backend> {
+pub struct ActionRefiner {
     /// Primary refinement network
-    refinement_network: burn::nn::Linear<B>,
+    refinement_network: burn::nn::Linear,
     /// Constraint enforcement layer
-    constraint_layer: burn::nn::Linear<B>,
+    constraint_layer: burn::nn::Linear,
     /// Optimization layer
-    optimization_layer: burn::nn::Linear<B>,
+    optimization_layer: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct UncertaintyEstimator<B: Backend> {
+pub struct UncertaintyEstimator {
     /// Uncertainty quantification network
-    uncertainty_network: burn::nn::Linear<B>,
+    uncertainty_network: burn::nn::Linear,
     /// Confidence estimation
-    confidence_estimator: burn::nn::Linear<B>,
+    confidence_estimator: burn::nn::Linear,
     /// Epistemic uncertainty estimation
-    epistemic_estimator: burn::nn::Linear<B>,
+    epistemic_estimator: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct MultiStepPlanner<B: Backend> {
+pub struct MultiStepPlanner {
     /// Future state predictor
-    state_predictor: burn::nn::Linear<B>,
+    state_predictor: burn::nn::Linear,
     /// Multi-horizon planning network
-    planning_network: burn::nn::Linear<B>,
+    planning_network: burn::nn::Linear,
     /// Plan optimization
-    plan_optimizer: burn::nn::Linear<B>,
+    plan_optimizer: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct RealtimeAdaptationController<B: Backend> {
+pub struct RealtimeAdaptationController {
     /// Adaptation trigger detector
-    trigger_detector: burn::nn::Linear<B>,
+    trigger_detector: burn::nn::Linear,
     /// Real-time adaptation network
-    adaptation_network: burn::nn::Linear<B>,
+    adaptation_network: burn::nn::Linear,
     /// Adaptation control signals
-    control_signals: burn::nn::Linear<B>,
+    control_signals: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> DecisionOptimizer<B> {
-    pub(crate) fn new(config: &crate::SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl DecisionOptimizer {
+    pub(crate) fn new(config: &crate::SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let action_dim = config.environment.action_dimension;
         let hidden_dim = (obs_dim + action_dim) / 2;
@@ -79,10 +79,10 @@ impl<B: Backend> DecisionOptimizer<B> {
     /// Optimize decision based on policy output and behavioral context
     pub(crate) async fn optimize_decision(
         &self,
-        action_probs: Tensor<B, 2>,
-        _state_value: Tensor<B, 2>,
+        action_probs: Tensor<2>,
+        _state_value: Tensor<2>,
         behavior_result: &(crate::behavior::BehaviorType, f32),
-    ) -> LonebothResult<Tensor<B, 2>> {
+    ) -> LonebothResult<Tensor<2>> {
         debug!("Optimizing decision with behavior: {:?}", behavior_result.0);
 
         // Refine action based on behavioral context
@@ -116,9 +116,9 @@ impl<B: Backend> DecisionOptimizer<B> {
     /// Apply real-time adaptation
     pub(crate) async fn apply_realtime_adaptation(
         &self,
-        action: Tensor<B, 2>,
-        observations: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        action: Tensor<2>,
+        observations: Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         debug!("Applying real-time adaptation");
 
         // Detect need for adaptation
@@ -149,16 +149,16 @@ impl<B: Backend> DecisionOptimizer<B> {
     /// Apply conservative adjustment for high uncertainty
     async fn apply_conservative_adjustment(
         &self,
-        action: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        action: Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         // Scale down action magnitude for conservative behavior
         let conservative_action = action * 0.8;
         Ok(conservative_action)
     }
 }
 
-impl<B: Backend> ActionRefiner<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl ActionRefiner {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             refinement_network: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             constraint_layer: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -167,7 +167,7 @@ impl<B: Backend> ActionRefiner<B> {
         }
     }
 
-    async fn refine(&self, action: Tensor<B, 2>, confidence: f32) -> LonebothResult<Tensor<B, 2>> {
+    async fn refine(&self, action: Tensor<2>, confidence: f32) -> LonebothResult<Tensor<2>> {
         let refined = self.refinement_network.forward(action);
         let action_refined = refined.clone();
         let refined = self.activation.forward(refined);
@@ -184,8 +184,8 @@ impl<B: Backend> ActionRefiner<B> {
     }
 }
 
-impl<B: Backend> UncertaintyEstimator<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl UncertaintyEstimator {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             uncertainty_network: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             confidence_estimator: burn::nn::LinearConfig::new(hidden_dim, 1).init(device),
@@ -194,7 +194,7 @@ impl<B: Backend> UncertaintyEstimator<B> {
         }
     }
 
-    async fn estimate(&self, action: Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>> {
+    async fn estimate(&self, action: Tensor<2>) -> LonebothResult<Tensor<2>> {
         let features = self
             .activation
             .forward(self.uncertainty_network.forward(action));
@@ -203,8 +203,8 @@ impl<B: Backend> UncertaintyEstimator<B> {
     }
 }
 
-impl<B: Backend> MultiStepPlanner<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl MultiStepPlanner {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             state_predictor: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             planning_network: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -214,8 +214,8 @@ impl<B: Backend> MultiStepPlanner<B> {
     }
 }
 
-impl<B: Backend> RealtimeAdaptationController<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl RealtimeAdaptationController {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             trigger_detector: burn::nn::LinearConfig::new(input_dim, hidden_dim).init(device),
             adaptation_network: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -226,8 +226,8 @@ impl<B: Backend> RealtimeAdaptationController<B> {
 
     async fn detect_adaptation_need(
         &self,
-        observations: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        observations: Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         let features = self
             .activation
             .forward(self.trigger_detector.forward(observations));
@@ -237,9 +237,9 @@ impl<B: Backend> RealtimeAdaptationController<B> {
 
     async fn adapt_action(
         &self,
-        action: Tensor<B, 2>,
-        adaptation_signal: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        action: Tensor<2>,
+        adaptation_signal: Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         let adaptation_features = self
             .activation
             .forward(self.adaptation_network.forward(adaptation_signal));

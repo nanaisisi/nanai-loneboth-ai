@@ -8,28 +8,28 @@ use std::collections::VecDeque;
 
 /// Context tracking for environmental awareness
 #[derive(Debug)]
-pub struct ContextTracker<B: Backend> {
+pub struct ContextTracker {
     /// Current environmental context
     pub(crate) current_context: EnvironmentalContext,
     /// Context history
     pub(crate) context_history: VecDeque<EnvironmentalContext>,
     /// Context evolution predictor
-    pub(crate) evolution_predictor: ContextEvolutionPredictor<B>,
+    pub(crate) evolution_predictor: ContextEvolutionPredictor,
 }
 
 #[derive(Module, Debug)]
-pub struct ContextEvolutionPredictor<B: Backend> {
+pub struct ContextEvolutionPredictor {
     /// Temporal evolution network
-    evolution_network: burn::nn::Linear<B>,
+    evolution_network: burn::nn::Linear,
     /// Context prediction network
-    prediction_network: burn::nn::Linear<B>,
+    prediction_network: burn::nn::Linear,
     /// Evolution rate estimator
-    rate_estimator: burn::nn::Linear<B>,
+    rate_estimator: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> ContextTracker<B> {
-    pub(crate) fn new() -> Self {
+impl ContextTracker {
+    pub(crate) fn new(device: &Device) -> Self {
         Self {
             current_context: EnvironmentalContext {
                 state_id: "initial".to_string(),
@@ -38,13 +38,13 @@ impl<B: Backend> ContextTracker<B> {
                 uncertainty: 1.0,
             },
             context_history: VecDeque::with_capacity(50),
-            evolution_predictor: ContextEvolutionPredictor::new(),
+            evolution_predictor: ContextEvolutionPredictor::new(device),
         }
     }
 
     pub(crate) async fn update_context(
         &mut self,
-        observations: &Tensor<B, 2>,
+        observations: &Tensor<2>,
     ) -> LonebothResult<()> {
         // Extract features from observations
         let features = self.extract_context_features(observations)?;
@@ -62,7 +62,7 @@ impl<B: Backend> ContextTracker<B> {
         Ok(())
     }
 
-    fn extract_context_features(&self, observations: &Tensor<B, 2>) -> LonebothResult<Vec<f32>> {
+    fn extract_context_features(&self, observations: &Tensor<2>) -> LonebothResult<Vec<f32>> {
         // Extract statistical features from observations
         let mean_f: f32 = observations
             .clone()
@@ -115,14 +115,12 @@ impl<B: Backend> ContextTracker<B> {
     }
 }
 
-impl<B: Backend> ContextEvolutionPredictor<B> {
-    fn new() -> Self {
-        // Placeholder initialization
-        let device = B::Device::default();
+impl ContextEvolutionPredictor {
+    fn new(device: &Device) -> Self {
         Self {
-            evolution_network: burn::nn::LinearConfig::new(4, 8).init(&device),
-            prediction_network: burn::nn::LinearConfig::new(8, 4).init(&device),
-            rate_estimator: burn::nn::LinearConfig::new(8, 1).init(&device),
+            evolution_network: burn::nn::LinearConfig::new(4, 8).init(device),
+            prediction_network: burn::nn::LinearConfig::new(8, 4).init(device),
+            rate_estimator: burn::nn::LinearConfig::new(8, 1).init(device),
             activation: burn::nn::Relu::new(),
         }
     }

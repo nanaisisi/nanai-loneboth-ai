@@ -26,37 +26,37 @@ use tokio::sync::RwLock;
 use tracing::{debug, info};
 
 /// High-performance inference engine for real-time decision making
-pub struct InferenceEngine<B: Backend> {
+pub struct InferenceEngine {
     /// Core policy network for inference
-    policy_network: Arc<RwLock<PolicyNetwork<B>>>,
+    policy_network: Arc<RwLock<PolicyNetwork>>,
     /// Behavioral pattern recognition
-    behavior_recognizer: Arc<RwLock<BehaviorPattern<B>>>,
+    behavior_recognizer: Arc<RwLock<BehaviorPattern>>,
     /// Decision optimization system
-    decision_optimizer: DecisionOptimizer<B>,
+    decision_optimizer: DecisionOptimizer,
     /// Inference configuration
     config: InferenceConfig,
     /// Performance metrics
     metrics: InferenceMetrics,
     /// Cached policy states for efficiency
-    policy_cache: PolicyCache<B>,
+    policy_cache: PolicyCache,
     /// Device for computation
-    device: Device<B>,
+    device: Device,
 }
 
 /// Real-time decision maker with environmental awareness
-pub struct DecisionMaker<B: Backend> {
+pub struct DecisionMaker {
     /// Inference engine reference
-    inference_engine: Arc<InferenceEngine<B>>,
+    inference_engine: Arc<InferenceEngine>,
     /// Decision history for temporal reasoning
-    decision_history: VecDeque<DecisionRecord<B>>,
+    decision_history: VecDeque<DecisionRecord>,
     /// Environmental context tracker
-    context_tracker: ContextTracker<B>,
+    context_tracker: ContextTracker,
     /// Decision confidence threshold
     confidence_threshold: f32,
 }
 
-impl<B: Backend> InferenceEngine<B> {
-    pub fn new(config: &InferenceConfig, device: Device<B>) -> LonebothResult<Self> {
+impl InferenceEngine {
+    pub fn new(config: &InferenceConfig, device: Device) -> LonebothResult<Self> {
         info!("Initializing InferenceEngine with config: {:?}", config);
 
         // Initialize system configuration for sub-components
@@ -100,7 +100,7 @@ impl<B: Backend> InferenceEngine<B> {
     }
 
     /// Perform inference on observations
-    pub async fn predict(&self, observations: Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>> {
+    pub async fn predict(&self, observations: Tensor<2>) -> LonebothResult<Tensor<2>> {
         let start_time = Instant::now();
         debug!("Starting inference prediction");
 
@@ -125,8 +125,8 @@ impl<B: Backend> InferenceEngine<B> {
     /// Full inference pipeline with optimization
     async fn full_inference_pipeline(
         &self,
-        observations: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        observations: Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         debug!("Executing full inference pipeline");
 
         // Behavioral pattern recognition
@@ -190,8 +190,8 @@ impl<B: Backend> InferenceEngine<B> {
     /// Check cache for existing result
     async fn check_cache(
         &self,
-        observations: &Tensor<B, 2>,
-    ) -> LonebothResult<Option<Tensor<B, 2>>> {
+        observations: &Tensor<2>,
+    ) -> LonebothResult<Option<Tensor<2>>> {
         let state_hash = self.compute_state_hash(observations)?;
 
         if let Some(cached_state) = self.policy_cache.get(state_hash) {
@@ -207,8 +207,8 @@ impl<B: Backend> InferenceEngine<B> {
     /// Cache inference result
     async fn cache_result(
         &self,
-        observations: Tensor<B, 2>,
-        result: Tensor<B, 2>,
+        observations: Tensor<2>,
+        result: Tensor<2>,
     ) -> LonebothResult<()> {
         let _state_hash = self.compute_state_hash(&observations)?;
         let _cached_state = CachedPolicyState {
@@ -224,7 +224,7 @@ impl<B: Backend> InferenceEngine<B> {
     }
 
     /// Compute hash for state caching
-    fn compute_state_hash(&self, observations: &Tensor<B, 2>) -> LonebothResult<u64> {
+    fn compute_state_hash(&self, observations: &Tensor<2>) -> LonebothResult<u64> {
         // Simplified hash computation based on tensor data
         let data = observations.clone().flatten::<1>(0, 1).into_data();
         let hash = data
@@ -246,12 +246,13 @@ impl<B: Backend> InferenceEngine<B> {
     }
 }
 
-impl<B: Backend> DecisionMaker<B> {
-    pub fn new(inference_engine: Arc<InferenceEngine<B>>, confidence_threshold: f32) -> Self {
+impl DecisionMaker {
+    pub fn new(inference_engine: Arc<InferenceEngine>, confidence_threshold: f32) -> Self {
+        let device = inference_engine.device.clone();
         Self {
             inference_engine,
             decision_history: VecDeque::with_capacity(100),
-            context_tracker: ContextTracker::new(),
+            context_tracker: ContextTracker::new(&device),
             confidence_threshold,
         }
     }
@@ -259,8 +260,8 @@ impl<B: Backend> DecisionMaker<B> {
     /// Make decision with environmental awareness
     pub async fn make_decision(
         &mut self,
-        observations: Tensor<B, 2>,
-    ) -> LonebothResult<InferenceResult<B>> {
+        observations: Tensor<2>,
+    ) -> LonebothResult<InferenceResult> {
         let start_time = Instant::now();
 
         // Update environmental context
@@ -303,7 +304,7 @@ impl<B: Backend> DecisionMaker<B> {
     }
 
     /// Estimate decision confidence
-    fn estimate_confidence(&self, _action: &Tensor<B, 2>) -> LonebothResult<f32> {
+    fn estimate_confidence(&self, _action: &Tensor<2>) -> LonebothResult<f32> {
         Ok(0.8)
     }
 }

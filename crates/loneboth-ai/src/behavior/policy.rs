@@ -8,13 +8,13 @@ use tracing::{debug, info};
 
 /// Policy network for action selection and decision making
 #[derive(Module, Debug)]
-pub struct PolicyNetwork<B: Backend> {
+pub struct PolicyNetwork {
     /// State encoding network
-    pub(crate) state_encoder: StateEncoder<B>,
+    pub(crate) state_encoder: StateEncoder,
     /// Policy head for action probabilities
-    pub(crate) policy_head: PolicyHead<B>,
+    pub(crate) policy_head: PolicyHead,
     /// Value estimation head
-    pub(crate) value_head: ValueHead<B>,
+    pub(crate) value_head: ValueHead,
     /// Dropout for regularization
     pub(crate) dropout: Dropout,
     /// Configuration
@@ -22,36 +22,36 @@ pub struct PolicyNetwork<B: Backend> {
 }
 
 #[derive(Module, Debug)]
-pub struct StateEncoder<B: Backend> {
+pub struct StateEncoder {
     /// Input processing
-    input_layer: Linear<B>,
+    input_layer: Linear,
     /// Hidden encoding layers
-    encoding_layers: Vec<Linear<B>>,
+    encoding_layers: Vec<Linear>,
     /// Output encoding
-    output_layer: Linear<B>,
+    output_layer: Linear,
     activation: Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct PolicyHead<B: Backend> {
+pub struct PolicyHead {
     /// Policy layers
-    policy_layers: Vec<Linear<B>>,
+    policy_layers: Vec<Linear>,
     /// Action distribution parameters
-    action_distribution: Linear<B>,
+    action_distribution: Linear,
     activation: Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct ValueHead<B: Backend> {
+pub struct ValueHead {
     /// Value estimation layers
-    value_layers: Vec<Linear<B>>,
+    value_layers: Vec<Linear>,
     /// Value output
-    value_output: Linear<B>,
+    value_output: Linear,
     activation: Relu,
 }
 
-impl<B: Backend> PolicyNetwork<B> {
-    pub fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl PolicyNetwork {
+    pub fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         info!("Initializing PolicyNetwork");
 
         let state_dim = config.environment.observation_dimension;
@@ -68,7 +68,7 @@ impl<B: Backend> PolicyNetwork<B> {
     }
 
     /// Forward pass through policy network
-    pub fn forward(&self, state: Tensor<B, 2>) -> LonebothResult<(Tensor<B, 2>, Tensor<B, 2>)> {
+    pub fn forward(&self, state: Tensor<2>) -> LonebothResult<(Tensor<2>, Tensor<2>)> {
         debug!("PolicyNetwork forward pass");
 
         // Encode state
@@ -83,14 +83,14 @@ impl<B: Backend> PolicyNetwork<B> {
     }
 
     /// Sample action from policy
-    pub fn sample_action(&self, state: Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>> {
+    pub fn sample_action(&self, state: Tensor<2>) -> LonebothResult<Tensor<2>> {
         let (action_probs, _) = self.forward(state)?;
         Ok(action_probs)
     }
 }
 
-impl<B: Backend> StateEncoder<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl StateEncoder {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             input_layer: LinearConfig::new(input_dim, hidden_dim).init(device),
             encoding_layers: vec![
@@ -102,7 +102,7 @@ impl<B: Backend> StateEncoder<B> {
         }
     }
 
-    fn forward(&self, input: Tensor<B, 2>) -> Tensor<B, 2> {
+    fn forward(&self, input: Tensor<2>) -> Tensor<2> {
         let mut x = self.activation.forward(self.input_layer.forward(input));
 
         for layer in &self.encoding_layers {
@@ -113,8 +113,8 @@ impl<B: Backend> StateEncoder<B> {
     }
 }
 
-impl<B: Backend> PolicyHead<B> {
-    fn new(input_dim: usize, action_dim: usize, device: &Device<B>) -> Self {
+impl PolicyHead {
+    fn new(input_dim: usize, action_dim: usize, device: &Device) -> Self {
         let hidden_dim = (input_dim + action_dim) / 2;
 
         Self {
@@ -127,7 +127,7 @@ impl<B: Backend> PolicyHead<B> {
         }
     }
 
-    fn forward(&self, input: Tensor<B, 2>) -> Tensor<B, 2> {
+    fn forward(&self, input: Tensor<2>) -> Tensor<2> {
         let mut x = input;
 
         for layer in &self.policy_layers {
@@ -139,8 +139,8 @@ impl<B: Backend> PolicyHead<B> {
     }
 }
 
-impl<B: Backend> ValueHead<B> {
-    fn new(input_dim: usize, output_dim: usize, device: &Device<B>) -> Self {
+impl ValueHead {
+    fn new(input_dim: usize, output_dim: usize, device: &Device) -> Self {
         let hidden_dim = input_dim / 2;
 
         Self {
@@ -153,7 +153,7 @@ impl<B: Backend> ValueHead<B> {
         }
     }
 
-    fn forward(&self, input: Tensor<B, 2>) -> Tensor<B, 2> {
+    fn forward(&self, input: Tensor<2>) -> Tensor<2> {
         let mut x = input;
 
         for layer in &self.value_layers {

@@ -13,26 +13,26 @@ use tracing::{debug, info, warn};
 
 /// Environment system managing state, observations, and environmental dynamics
 #[derive(Debug)]
-pub struct Environment<B: Backend> {
+pub struct Environment {
     /// Current environmental state
-    current_state: EnvironmentState<B>,
+    current_state: EnvironmentState,
     /// Historical observations for temporal analysis
-    observation_history: VecDeque<Tensor<B, 2>>,
+    observation_history: VecDeque<Tensor<2>>,
     /// Environment configuration
     config: EnvironmentConfig,
     /// Adaptation event counter
     adaptation_count: u64,
     /// Device for tensor operations
-    device: Device<B>,
+    device: Device,
 }
 
 /// Complete environmental state representation
 #[derive(Debug, Clone)]
-pub struct EnvironmentState<B: Backend> {
+pub struct EnvironmentState {
     /// Current observation tensor
-    observation: Tensor<B, 2>,
+    observation: Tensor<2>,
     /// Temporal context from recent observations
-    temporal_context: Tensor<B, 2>,
+    temporal_context: Tensor<2>,
     /// Detected change magnitude
     change_magnitude: f32,
     /// State timestamp
@@ -60,11 +60,10 @@ pub struct ObservationMetadata {
     pub context: Vec<(String, String)>,
 }
 
-impl<B: Backend> Environment<B> {
-    pub fn new(config: &EnvironmentConfig) -> LonebothResult<Self> {
+impl Environment {
+    pub fn new(config: &EnvironmentConfig, device: Device) -> LonebothResult<Self> {
         info!("Initializing Environment with config: {:?}", config);
 
-        let device = B::Device::default();
         let initial_observation = Tensor::zeros([1, config.observation_dimension], &device);
         let initial_temporal_context = Tensor::zeros(
             [
@@ -93,8 +92,8 @@ impl<B: Backend> Environment<B> {
     /// Update environmental state with new observation
     pub async fn update_state(
         &mut self,
-        observation: Tensor<B, 2>,
-    ) -> LonebothResult<&EnvironmentState<B>> {
+        observation: Tensor<2>,
+    ) -> LonebothResult<&EnvironmentState> {
         debug!("Updating environmental state");
 
         // Calculate change magnitude from previous state
@@ -125,7 +124,7 @@ impl<B: Backend> Environment<B> {
     }
 
     /// Calculate magnitude of change from previous observation
-    fn calculate_change_magnitude(&self, new_observation: &Tensor<B, 2>) -> LonebothResult<f32> {
+    fn calculate_change_magnitude(&self, new_observation: &Tensor<2>) -> LonebothResult<f32> {
         if self.current_state.timestamp == 0 {
             return Ok(0.0);
         }
@@ -143,7 +142,7 @@ impl<B: Backend> Environment<B> {
     }
 
     /// Build temporal context from observation history
-    fn build_temporal_context(&self) -> LonebothResult<Tensor<B, 2>> {
+    fn build_temporal_context(&self) -> LonebothResult<Tensor<2>> {
         if self.observation_history.is_empty() {
             return Ok(Tensor::zeros(
                 [
@@ -175,8 +174,8 @@ impl<B: Backend> Environment<B> {
     /// Compute structural adaptation based on environmental patterns
     pub async fn compute_structural_adaptation(
         &mut self,
-        env_state: &EnvironmentState<B>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        env_state: &EnvironmentState,
+    ) -> LonebothResult<Tensor<2>> {
         debug!("Computing structural adaptation");
 
         // Analyze structural patterns in the environment
@@ -207,8 +206,8 @@ impl<B: Backend> Environment<B> {
     /// Analyze structural patterns in environmental observations
     fn analyze_structural_patterns(
         &self,
-        env_state: &EnvironmentState<B>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        env_state: &EnvironmentState,
+    ) -> LonebothResult<Tensor<2>> {
         // Analyze frequency domain characteristics
         let frequency_analysis = self.analyze_frequency_patterns(&env_state.observation)?;
 
@@ -223,8 +222,8 @@ impl<B: Backend> Environment<B> {
     /// Analyze frequency domain patterns (simplified implementation)
     fn analyze_frequency_patterns(
         &self,
-        observation: &Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        observation: &Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         // Simplified frequency analysis using convolution-like operations
         // In practice, this would use FFT or other frequency domain methods
         let smoothed = observation.clone() * 0.9;
@@ -232,7 +231,7 @@ impl<B: Backend> Environment<B> {
     }
 
     /// Analyze spatial correlation patterns
-    fn analyze_spatial_patterns(&self, observation: &Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>> {
+    fn analyze_spatial_patterns(&self, observation: &Tensor<2>) -> LonebothResult<Tensor<2>> {
         // Compute local correlations (simplified)
         let shifted = observation.clone().roll(&[1], &[1]);
         let correlation = observation.clone() * shifted;
@@ -240,7 +239,7 @@ impl<B: Backend> Environment<B> {
     }
 
     /// Detect structural changes requiring adaptation
-    fn detect_structural_changes(&self, patterns: &Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>> {
+    fn detect_structural_changes(&self, patterns: &Tensor<2>) -> LonebothResult<Tensor<2>> {
         // Compare current patterns with expected baseline
         let baseline = Tensor::zeros_like(patterns);
         let change_signal = patterns.clone() - baseline;
@@ -275,7 +274,7 @@ impl<B: Backend> Environment<B> {
     }
 
     /// Convert observation to tensor
-    pub fn observation_to_tensor(&self, observation: &Observation) -> LonebothResult<Tensor<B, 2>> {
+    pub fn observation_to_tensor(&self, observation: &Observation) -> LonebothResult<Tensor<2>> {
         if observation.data.len() != self.config.observation_dimension {
             return Err(anyhow!(
                 "Observation dimension mismatch: expected {}, got {}",
@@ -291,14 +290,14 @@ impl<B: Backend> Environment<B> {
     }
 }
 
-impl<B: Backend> EnvironmentState<B> {
+impl EnvironmentState {
     /// Get current observation tensor
-    pub fn current_observation(&self) -> Tensor<B, 2> {
+    pub fn current_observation(&self) -> Tensor<2> {
         self.observation.clone()
     }
 
     /// Get temporal context tensor
-    pub fn temporal_context(&self) -> Tensor<B, 2> {
+    pub fn temporal_context(&self) -> Tensor<2> {
         self.temporal_context.clone()
     }
 

@@ -14,13 +14,13 @@ use tracing::{debug, info};
 /// Core action executor responsible for translating environmental states into actions
 /// Uses burn neural networks for consistent training-inference pipeline
 #[derive(Module, Debug)]
-pub struct ActionExecutor<B: Backend> {
+pub struct ActionExecutor {
     /// Primary structural processing network
-    structural_processor: StructuralProcessor<B>,
+    structural_processor: StructuralProcessor,
     /// Relational pattern analyzer
-    relational_analyzer: RelationalAnalyzer<B>,
+    relational_analyzer: RelationalAnalyzer,
     /// Action synthesis network
-    action_synthesizer: ActionSynthesizer<B>,
+    action_synthesizer: ActionSynthesizer,
     /// Execution statistics
     execution_count: u64,
     /// Configuration reference
@@ -28,41 +28,41 @@ pub struct ActionExecutor<B: Backend> {
 }
 
 #[derive(Module, Debug)]
-pub struct StructuralProcessor<B: Backend> {
+pub struct StructuralProcessor {
     /// Input processing layer
-    input_layer: Linear<B>,
+    input_layer: Linear,
     /// Hidden processing layers
-    hidden_layers: Vec<Linear<B>>,
+    hidden_layers: Vec<Linear>,
     /// Output structural features
-    output_layer: Linear<B>,
+    output_layer: Linear,
     /// Activation function
     activation: Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct RelationalAnalyzer<B: Backend> {
+pub struct RelationalAnalyzer {
     /// Relational attention mechanism
-    attention_layer: Linear<B>,
+    attention_layer: Linear,
     /// Temporal context processing
-    temporal_processor: Linear<B>,
+    temporal_processor: Linear,
     /// Relational feature extraction
-    relation_extractor: Linear<B>,
+    relation_extractor: Linear,
     activation: Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct ActionSynthesizer<B: Backend> {
+pub struct ActionSynthesizer {
     /// Feature fusion layer
-    fusion_layer: Linear<B>,
+    fusion_layer: Linear,
     /// Action generation layers
-    action_layers: Vec<Linear<B>>,
+    action_layers: Vec<Linear>,
     /// Final action output
-    output_layer: Linear<B>,
+    output_layer: Linear,
     activation: Relu,
 }
 
-impl<B: Backend> StructuralProcessor<B> {
-    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device<B>) -> Self {
+impl StructuralProcessor {
+    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device) -> Self {
         let input_layer = LinearConfig::new(input_dim, hidden_dim).init(device);
         let hidden_layers = vec![
             LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -79,7 +79,7 @@ impl<B: Backend> StructuralProcessor<B> {
     }
 
     /// Process structural patterns in the input
-    fn forward(&self, input: Tensor<B, 2>) -> Tensor<B, 2> {
+    fn forward(&self, input: Tensor<2>) -> Tensor<2> {
         let mut x = self.activation.forward(self.input_layer.forward(input));
 
         for layer in &self.hidden_layers {
@@ -90,8 +90,8 @@ impl<B: Backend> StructuralProcessor<B> {
     }
 }
 
-impl<B: Backend> RelationalAnalyzer<B> {
-    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device<B>) -> Self {
+impl RelationalAnalyzer {
+    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device) -> Self {
         Self {
             attention_layer: LinearConfig::new(input_dim, hidden_dim).init(device),
             temporal_processor: LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -100,12 +100,12 @@ impl<B: Backend> RelationalAnalyzer<B> {
         }
     }
 
-    /// Analyze relational patterns and temporal dependencies
+    /// Analyze relational patterns between structural elements
     fn forward(
         &self,
-        structural_features: Tensor<B, 2>,
-        temporal_context: Tensor<B, 2>,
-    ) -> Tensor<B, 2> {
+        structural_features: Tensor<2>,
+        temporal_context: Tensor<2>,
+    ) -> Tensor<2> {
         // Apply attention to structural features
         let attended = self
             .activation
@@ -122,12 +122,12 @@ impl<B: Backend> RelationalAnalyzer<B> {
     }
 }
 
-impl<B: Backend> ActionSynthesizer<B> {
+impl ActionSynthesizer {
     fn new(
         structural_dim: usize,
         relational_dim: usize,
         action_dim: usize,
-        device: &Device<B>,
+        device: &Device,
     ) -> Self {
         let fusion_input_dim = structural_dim + relational_dim;
         let hidden_dim = (fusion_input_dim + action_dim) / 2;
@@ -146,9 +146,9 @@ impl<B: Backend> ActionSynthesizer<B> {
     /// Synthesize actions from structural and relational features
     fn forward(
         &self,
-        structural_features: Tensor<B, 2>,
-        relational_features: Tensor<B, 2>,
-    ) -> Tensor<B, 2> {
+        structural_features: Tensor<2>,
+        relational_features: Tensor<2>,
+    ) -> Tensor<2> {
         // Fuse structural and relational features
         let fused = Tensor::cat(vec![structural_features, relational_features], 1);
         let mut x = self.activation.forward(self.fusion_layer.forward(fused));
@@ -163,8 +163,8 @@ impl<B: Backend> ActionSynthesizer<B> {
     }
 }
 
-impl<B: Backend> ActionExecutor<B> {
-    pub fn new(config: &SystemConfig, device: Device<B>) -> LonebothResult<Self> {
+impl ActionExecutor {
+    pub fn new(config: &SystemConfig, device: Device) -> LonebothResult<Self> {
         info!("Initializing ActionExecutor with device: {:?}", device);
 
         let obs_dim = config.environment.observation_dimension;
@@ -191,8 +191,8 @@ impl<B: Backend> ActionExecutor<B> {
     /// This is the core method that integrates structural and relational processing
     pub async fn execute(
         &mut self,
-        env_state: &EnvironmentState<B>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        env_state: &EnvironmentState,
+    ) -> LonebothResult<Tensor<2>> {
         debug!("Executing action for environmental state");
 
         // Extract current observation and temporal context
@@ -224,9 +224,9 @@ impl<B: Backend> ActionExecutor<B> {
     /// Compute relational adaptation based on action outcomes
     pub async fn compute_relational_adaptation(
         &self,
-        action: &Tensor<B, 2>,
-        env_state: &EnvironmentState<B>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        action: &Tensor<2>,
+        env_state: &EnvironmentState,
+    ) -> LonebothResult<Tensor<2>> {
         debug!("Computing relational adaptation");
 
         // Analyze action-environment relationship
@@ -241,9 +241,9 @@ impl<B: Backend> ActionExecutor<B> {
     /// Analyze the impact of actions on the environment
     fn analyze_action_impact(
         &self,
-        action: &Tensor<B, 2>,
-        env_state: &EnvironmentState<B>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        action: &Tensor<2>,
+        env_state: &EnvironmentState,
+    ) -> LonebothResult<Tensor<2>> {
         // Compute difference between expected and actual environmental response
         let current_obs = env_state.current_observation();
         let predicted_response = self.predict_environmental_response(action)?;
@@ -256,8 +256,8 @@ impl<B: Backend> ActionExecutor<B> {
     /// Predict environmental response to action (simplified implementation)
     fn predict_environmental_response(
         &self,
-        _action: &Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        _action: &Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         // This would be implemented with a learned environment model
         // For now, return a placeholder
         Err(anyhow!(
@@ -268,8 +268,8 @@ impl<B: Backend> ActionExecutor<B> {
     /// Compute adaptation signal for model updates
     fn compute_adaptation_signal(
         &self,
-        action_impact: &Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        action_impact: &Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         // Compute magnitude of adaptation needed
         let adaptation_magnitude = action_impact.clone().abs().mean();
 

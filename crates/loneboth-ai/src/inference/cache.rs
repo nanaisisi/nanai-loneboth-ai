@@ -6,9 +6,9 @@ use std::time::Instant;
 
 /// Policy state caching for improved performance
 #[derive(Debug)]
-pub struct PolicyCache<B: Backend> {
+pub struct PolicyCache {
     /// Cached policy states
-    pub(crate) cached_states: VecDeque<CachedPolicyState<B>>,
+    pub(crate) cached_states: VecDeque<CachedPolicyState>,
     /// Cache configuration
     pub(crate) max_cache_size: usize,
     /// Cache hit ratio
@@ -18,18 +18,18 @@ pub struct PolicyCache<B: Backend> {
 }
 
 #[derive(Debug, Clone)]
-pub struct CachedPolicyState<B: Backend> {
+pub struct CachedPolicyState {
     /// Input state hash
     pub state_hash: u64,
     /// Cached policy output
-    pub policy_output: Tensor<B, 2>,
+    pub policy_output: Tensor<2>,
     /// Cache timestamp
     pub timestamp: Instant,
     /// Cache confidence
     pub confidence: f32,
 }
 
-impl<B: Backend> PolicyCache<B> {
+impl PolicyCache {
     pub(crate) fn new(max_size: usize) -> Self {
         Self {
             cached_states: VecDeque::with_capacity(max_size),
@@ -39,7 +39,7 @@ impl<B: Backend> PolicyCache<B> {
         }
     }
 
-    pub(crate) fn get(&self, state_hash: u64) -> Option<&CachedPolicyState<B>> {
+    pub(crate) fn get(&self, state_hash: u64) -> Option<&CachedPolicyState> {
         self.cached_states
             .iter()
             .find(|state| state.state_hash == state_hash)

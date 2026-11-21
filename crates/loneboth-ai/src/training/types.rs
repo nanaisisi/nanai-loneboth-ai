@@ -6,19 +6,19 @@ use std::time::{Duration, Instant};
 
 /// Training batch containing experience data
 #[derive(Debug, Clone)]
-pub struct TrainingBatch<B: Backend> {
+pub struct TrainingBatch {
     /// State observations
-    pub states: Tensor<B, 3>,
+    pub states: Tensor<3>,
     /// Actions taken
-    pub actions: Tensor<B, 3>,
+    pub actions: Tensor<3>,
     /// Rewards received
-    pub rewards: Tensor<B, 2>,
+    pub rewards: Tensor<2>,
     /// Next states
-    pub next_states: Tensor<B, 3>,
+    pub next_states: Tensor<3>,
     /// Episode termination flags
-    pub done: Tensor<B, 2>,
+    pub done: Tensor<2>,
     /// Temporal context
-    pub temporal_context: Tensor<B, 3>,
+    pub temporal_context: Tensor<3>,
 }
 
 /// Training result containing learned parameters and metrics

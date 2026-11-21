@@ -23,9 +23,9 @@ pub struct InferenceMetrics {
 
 /// Inference result with confidence and metadata
 #[derive(Debug, Clone)]
-pub struct InferenceResult<B: Backend> {
+pub struct InferenceResult {
     /// Predicted action
-    pub action: Tensor<B, 2>,
+    pub action: Tensor<2>,
     /// Confidence in prediction
     pub confidence: f32,
     /// Uncertainty estimate
@@ -48,11 +48,11 @@ pub struct InferenceMetadata {
 
 /// Decision record for temporal reasoning
 #[derive(Debug, Clone)]
-pub struct DecisionRecord<B: Backend> {
+pub struct DecisionRecord {
     /// Input state
-    pub state: Tensor<B, 2>,
+    pub state: Tensor<2>,
     /// Generated action
-    pub action: Tensor<B, 2>,
+    pub action: Tensor<2>,
     /// Decision confidence
     pub confidence: f32,
     /// Decision timestamp

@@ -27,52 +27,52 @@ pub enum BehaviorType {
 
 /// Behavioral pattern classifier and action generator
 #[derive(Module, Debug)]
-pub struct BehaviorPattern<B: Backend> {
+pub struct BehaviorPattern {
     /// Pattern recognition network
-    pattern_recognizer: PatternRecognizer<B>,
+    pattern_recognizer: PatternRecognizer,
     /// Action pattern generator
-    action_generator: ActionGenerator<B>,
+    action_generator: ActionGenerator,
     /// Behavioral memory
-    behavioral_memory: BehavioralMemory<B>,
+    behavioral_memory: BehavioralMemory,
     /// Pattern library
     known_patterns: Vec<BehaviorType>,
 }
 
 #[derive(Module, Debug)]
-pub struct PatternRecognizer<B: Backend> {
+pub struct PatternRecognizer {
     /// Feature extraction layers
-    feature_extractor: Linear<B>,
+    feature_extractor: Linear,
     /// Pattern classification layers
-    classifier_layers: Vec<Linear<B>>,
+    classifier_layers: Vec<Linear>,
     /// Pattern confidence estimation
-    confidence_estimator: Linear<B>,
+    confidence_estimator: Linear,
     activation: Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct ActionGenerator<B: Backend> {
+pub struct ActionGenerator {
     /// Context processing
-    context_processor: Linear<B>,
+    context_processor: Linear,
     /// Action synthesis layers
-    synthesis_layers: Vec<Linear<B>>,
+    synthesis_layers: Vec<Linear>,
     /// Action refinement
-    refinement_layer: Linear<B>,
+    refinement_layer: Linear,
     activation: Relu,
 }
 
 #[derive(Module, Debug)]
-pub struct BehavioralMemory<B: Backend> {
+pub struct BehavioralMemory {
     /// Memory encoding
-    memory_encoder: Linear<B>,
+    memory_encoder: Linear,
     /// Memory retrieval mechanism
-    retrieval_mechanism: Linear<B>,
+    retrieval_mechanism: Linear,
     /// Memory update gate
-    update_gate: Linear<B>,
+    update_gate: Linear,
     activation: Relu,
 }
 
-impl<B: Backend> BehaviorPattern<B> {
-    pub fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl BehaviorPattern {
+    pub fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         info!("Initializing BehaviorPattern");
 
         let input_dim = config.environment.observation_dimension;
@@ -98,7 +98,7 @@ impl<B: Backend> BehaviorPattern<B> {
     }
 
     /// Recognize behavioral patterns in current state
-    pub fn recognize_pattern(&self, state: Tensor<B, 2>) -> LonebothResult<(BehaviorType, f32)> {
+    pub fn recognize_pattern(&self, state: Tensor<2>) -> LonebothResult<(BehaviorType, f32)> {
         debug!("Recognizing behavioral pattern");
 
         // Extract pattern features
@@ -127,8 +127,8 @@ impl<B: Backend> BehaviorPattern<B> {
     pub fn generate_action(
         &self,
         pattern: &BehaviorType,
-        state: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        state: Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         debug!("Generating action for pattern: {:?}", pattern);
 
         // Retrieve relevant behavioral memory
@@ -145,8 +145,8 @@ impl<B: Backend> BehaviorPattern<B> {
     /// Update behavioral memory with new experience
     pub fn update_memory(
         &mut self,
-        state: Tensor<B, 2>,
-        action: Tensor<B, 2>,
+        state: Tensor<2>,
+        action: Tensor<2>,
         outcome: f32,
     ) -> LonebothResult<()> {
         debug!("Updating behavioral memory");
@@ -156,7 +156,7 @@ impl<B: Backend> BehaviorPattern<B> {
     }
 
     /// Compute pattern recognition scores
-    fn compute_pattern_scores(&self, features: &Tensor<B, 2>) -> LonebothResult<Vec<f32>> {
+    fn compute_pattern_scores(&self, features: &Tensor<2>) -> LonebothResult<Vec<f32>> {
         let mean_f: f32 = features
             .clone()
             .mean()
@@ -185,8 +185,8 @@ impl<B: Backend> BehaviorPattern<B> {
     }
 }
 
-impl<B: Backend> PatternRecognizer<B> {
-    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device<B>) -> Self {
+impl PatternRecognizer {
+    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device) -> Self {
         Self {
             feature_extractor: LinearConfig::new(input_dim, hidden_dim).init(device),
             classifier_layers: vec![
@@ -198,7 +198,7 @@ impl<B: Backend> PatternRecognizer<B> {
         }
     }
 
-    fn forward(&self, input: Tensor<B, 2>) -> Tensor<B, 2> {
+    fn forward(&self, input: Tensor<2>) -> Tensor<2> {
         let mut x = self
             .activation
             .forward(self.feature_extractor.forward(input));
@@ -211,8 +211,8 @@ impl<B: Backend> PatternRecognizer<B> {
     }
 }
 
-impl<B: Backend> ActionGenerator<B> {
-    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device<B>) -> Self {
+impl ActionGenerator {
+    fn new(input_dim: usize, hidden_dim: usize, output_dim: usize, device: &Device) -> Self {
         Self {
             context_processor: LinearConfig::new(input_dim, hidden_dim).init(device),
             synthesis_layers: vec![
@@ -227,9 +227,9 @@ impl<B: Backend> ActionGenerator<B> {
     fn generate(
         &self,
         _pattern: &BehaviorType,
-        state: Tensor<B, 2>,
-        memory: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+        state: Tensor<2>,
+        memory: Tensor<2>,
+    ) -> LonebothResult<Tensor<2>> {
         let context = state + memory;
 
         let mut x = self
@@ -245,8 +245,8 @@ impl<B: Backend> ActionGenerator<B> {
     }
 }
 
-impl<B: Backend> BehavioralMemory<B> {
-    fn new(input_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl BehavioralMemory {
+    fn new(input_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             memory_encoder: LinearConfig::new(input_dim, hidden_dim).init(device),
             retrieval_mechanism: LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -255,7 +255,7 @@ impl<B: Backend> BehavioralMemory<B> {
         }
     }
 
-    fn retrieve(&self, state: Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>> {
+    fn retrieve(&self, state: Tensor<2>) -> LonebothResult<Tensor<2>> {
         let encoded = self.activation.forward(self.memory_encoder.forward(state));
         let retrieved = self.retrieval_mechanism.forward(encoded);
         Ok(retrieved)
@@ -263,8 +263,8 @@ impl<B: Backend> BehavioralMemory<B> {
 
     fn update(
         &self,
-        _state: Tensor<B, 2>,
-        _action: Tensor<B, 2>,
+        _state: Tensor<2>,
+        _action: Tensor<2>,
         _outcome: f32,
     ) -> LonebothResult<()> {
         Ok(())
