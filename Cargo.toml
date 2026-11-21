@@ -21,4 +21,11 @@ jiff = { version = "1.0.1", features = ["serde", "tz-system"] }
 tokio = { version = "1.54.1", features = ["full"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-rusqlite = { version = "0.43.0", features = ["bundled"] }
+rusqlite = { version = "0.37.0", features = ["bundled"] }
+anyhow = "1.0.104"
+thiserror = "2.0.21"
+rand = "0.9"
+clap = { version = "4.6.9", features = ["derive"] }
+reqwest = { version = "0.13.5", features = ["json"] }
+axum = "0.8.9"
+windows-sys = "0.61.2"

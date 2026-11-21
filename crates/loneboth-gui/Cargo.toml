@@ -10,11 +10,11 @@ loneboth-core = { path = "../loneboth-core" }
 windows-reactor = { git = "https://github.com/microsoft/windows-rs", branch = "master" }
 nanai-gna-dll-load = { git = "https://github.com/nanaisisi/nanai-gna-dll-load.git" }
 
-anyhow = "1.0.104"
+anyhow.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-clap = { version = "4.6.9", features = ["derive"] }
+clap.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.62.2", features = [
@@ -28,7 +28,7 @@ windows = { version = "0.62.2", features = [
     "Win32_UI_WindowsAndMessaging",
     "Win32_UI_Shell",
 ] }
-windows-sys = { version = "0.61.2", features = [
+windows-sys = { workspace = true, features = [
     "Win32_Foundation",
     "Win32_System_Threading",
     "Win32_System_SystemInformation",
