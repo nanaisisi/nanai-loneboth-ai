@@ -133,7 +133,9 @@ mod tests {
             enable_metrics: false,
         };
         let accelerator = GnaAccelerator::new(config).expect("GnaAccelerator init with fallback");
+        #[cfg(feature = "gna")]
         assert_eq!(accelerator.device().index, 0);
+        let _ = accelerator;
     }
 
     #[test]

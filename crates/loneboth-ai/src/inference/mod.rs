@@ -123,10 +123,7 @@ impl InferenceEngine {
     }
 
     /// Full inference pipeline with optimization
-    async fn full_inference_pipeline(
-        &self,
-        observations: Tensor<2>,
-    ) -> LonebothResult<Tensor<2>> {
+    async fn full_inference_pipeline(&self, observations: Tensor<2>) -> LonebothResult<Tensor<2>> {
         debug!("Executing full inference pipeline");
 
         // Behavioral pattern recognition
@@ -188,10 +185,7 @@ impl InferenceEngine {
     }
 
     /// Check cache for existing result
-    async fn check_cache(
-        &self,
-        observations: &Tensor<2>,
-    ) -> LonebothResult<Option<Tensor<2>>> {
+    async fn check_cache(&self, observations: &Tensor<2>) -> LonebothResult<Option<Tensor<2>>> {
         let state_hash = self.compute_state_hash(observations)?;
 
         if let Some(cached_state) = self.policy_cache.get(state_hash) {
@@ -205,11 +199,7 @@ impl InferenceEngine {
     }
 
     /// Cache inference result
-    async fn cache_result(
-        &self,
-        observations: Tensor<2>,
-        result: Tensor<2>,
-    ) -> LonebothResult<()> {
+    async fn cache_result(&self, observations: Tensor<2>, result: Tensor<2>) -> LonebothResult<()> {
         let _state_hash = self.compute_state_hash(&observations)?;
         let _cached_state = CachedPolicyState {
             state_hash: _state_hash,

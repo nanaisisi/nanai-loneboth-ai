@@ -35,6 +35,7 @@ pub struct BehaviorPattern {
     /// Behavioral memory
     behavioral_memory: BehavioralMemory,
     /// Pattern library
+    #[module(skip)]
     known_patterns: Vec<BehaviorType>,
 }
 
@@ -261,12 +262,7 @@ impl BehavioralMemory {
         Ok(retrieved)
     }
 
-    fn update(
-        &self,
-        _state: Tensor<2>,
-        _action: Tensor<2>,
-        _outcome: f32,
-    ) -> LonebothResult<()> {
+    fn update(&self, _state: Tensor<2>, _action: Tensor<2>, _outcome: f32) -> LonebothResult<()> {
         Ok(())
     }
 }

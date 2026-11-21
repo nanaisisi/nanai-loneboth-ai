@@ -6,18 +6,18 @@ use burn::tensor::{Device, Tensor};
 
 /// Behavioral validation for action and decision consistency
 #[derive(Module, Debug)]
-pub struct BehavioralValidator<B: Backend> {
+pub struct BehavioralValidator {
     /// Behavioral pattern analyzer
-    pattern_analyzer: burn::nn::Linear<B>,
+    pattern_analyzer: burn::nn::Linear,
     /// Action validation network
-    action_validator: burn::nn::Linear<B>,
+    action_validator: burn::nn::Linear,
     /// Decision coherence checker
-    coherence_checker: burn::nn::Linear<B>,
+    coherence_checker: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> BehavioralValidator<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl BehavioralValidator {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let hidden_dim = obs_dim / 2;
 
@@ -29,7 +29,7 @@ impl<B: Backend> BehavioralValidator<B> {
         })
     }
 
-    pub(crate) async fn validate(&self, observation: &Tensor<B, 2>) -> LonebothResult<(f32, f32, f32)> {
+    pub(crate) async fn validate(&self, observation: &Tensor<2>) -> LonebothResult<(f32, f32, f32)> {
         let patterns = self.activation.forward(self.pattern_analyzer.forward(observation.clone()));
 
         let action_validity = self.action_validator.forward(patterns.clone()).sigmoid().into_scalar();

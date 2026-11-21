@@ -18,6 +18,7 @@ pub struct PolicyNetwork {
     /// Dropout for regularization
     pub(crate) dropout: Dropout,
     /// Configuration
+    #[module(skip)]
     pub(crate) config: SystemConfig,
 }
 

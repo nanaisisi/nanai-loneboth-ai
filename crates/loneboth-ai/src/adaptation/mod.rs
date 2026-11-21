@@ -35,25 +35,25 @@ use std::time::Instant;
 use tracing::{debug, info};
 
 /// Comprehensive adaptation system managing structural and relational changes
-pub struct AdaptationSystem<B: Backend> {
+pub struct AdaptationSystem {
     /// Structural adaptation controller
-    structural_controller: StructuralAdaptationController<B>,
+    structural_controller: StructuralAdaptationController,
     /// Relational adaptation controller
-    relational_controller: RelationalAdaptationController<B>,
+    relational_controller: RelationalAdaptationController,
     /// Meta-adaptation coordinator
-    meta_coordinator: MetaAdaptationCoordinator<B>,
+    meta_coordinator: MetaAdaptationCoordinator,
     /// Adaptation history and learning
-    adaptation_memory: AdaptationMemorySystem<B>,
+    adaptation_memory: AdaptationMemorySystem,
     /// Real-time monitoring system
-    monitoring_system: AdaptationMonitoringSystem<B>,
+    monitoring_system: AdaptationMonitoringSystem,
     /// Configuration
     config: SystemConfig,
     /// Device for computation
-    device: Device<B>,
+    device: Device,
 }
 
-impl<B: Backend> AdaptationSystem<B> {
-    pub fn new(config: &SystemConfig, device: Device<B>) -> LonebothResult<Self> {
+impl AdaptationSystem {
+    pub fn new(config: &SystemConfig, device: Device) -> LonebothResult<Self> {
         info!("Initializing AdaptationSystem");
 
         let structural_controller = StructuralAdaptationController::new(config, &device)?;
@@ -76,7 +76,7 @@ impl<B: Backend> AdaptationSystem<B> {
     /// Perform comprehensive adaptation based on environmental changes
     pub async fn adapt_to_environment(
         &mut self,
-        env_state: &EnvironmentState<B>,
+        env_state: &EnvironmentState,
     ) -> LonebothResult<AdaptationResult> {
         info!("Starting comprehensive environmental adaptation");
 
@@ -143,8 +143,8 @@ impl<B: Backend> AdaptationSystem<B> {
     /// Analyze what adaptations are needed
     async fn analyze_adaptation_needs(
         &self,
-        env_state: &EnvironmentState<B>,
-    ) -> LonebothResult<AdaptationAnalysis<B>> {
+        env_state: &EnvironmentState,
+    ) -> LonebothResult<AdaptationAnalysis> {
         debug!("Analyzing adaptation needs");
 
         // Structural analysis
@@ -206,7 +206,7 @@ impl<B: Backend> AdaptationSystem<B> {
     }
 
     /// Compute adaptation urgency
-    fn compute_urgency(&self, env_state: &EnvironmentState<B>) -> LonebothResult<f32> {
+    fn compute_urgency(&self, env_state: &EnvironmentState) -> LonebothResult<f32> {
         let change_magnitude = env_state.change_magnitude();
         let urgency = if change_magnitude > self.config.environment.adaptation_threshold * 2.0 {
             1.0 // High urgency

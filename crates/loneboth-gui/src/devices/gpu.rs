@@ -26,7 +26,11 @@ pub fn collect_gpu_adapters() -> Vec<GpuAdapterInfo> {
                 if let Ok(desc) = adapter.GetDesc1() {
                     // ソフトウェアアダプター（WARP等）を除外
                     if (desc.Flags & 2) == 0 {
-                        let name_len = desc.Description.iter().position(|&c| c == 0).unwrap_or(desc.Description.len());
+                        let name_len = desc
+                            .Description
+                            .iter()
+                            .position(|&c| c == 0)
+                            .unwrap_or(desc.Description.len());
                         let name = String::from_utf16_lossy(&desc.Description[..name_len]);
 
                         if let Ok(adapter3) = adapter.cast::<IDXGIAdapter3>() {

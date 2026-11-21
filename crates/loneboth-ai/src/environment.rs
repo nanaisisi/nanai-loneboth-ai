@@ -220,10 +220,7 @@ impl Environment {
     }
 
     /// Analyze frequency domain patterns (simplified implementation)
-    fn analyze_frequency_patterns(
-        &self,
-        observation: &Tensor<2>,
-    ) -> LonebothResult<Tensor<2>> {
+    fn analyze_frequency_patterns(&self, observation: &Tensor<2>) -> LonebothResult<Tensor<2>> {
         // Simplified frequency analysis using convolution-like operations
         // In practice, this would use FFT or other frequency domain methods
         let smoothed = observation.clone() * 0.9;

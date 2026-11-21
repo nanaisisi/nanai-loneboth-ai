@@ -6,18 +6,18 @@ use burn::tensor::{Device, Tensor};
 
 /// Structural integrity verification for system components
 #[derive(Module, Debug)]
-pub struct StructuralIntegrityChecker<B: Backend> {
+pub struct StructuralIntegrityChecker {
     /// Component analysis network
-    component_analyzer: burn::nn::Linear<B>,
+    component_analyzer: burn::nn::Linear,
     /// Relationship validation network
-    relationship_validator: burn::nn::Linear<B>,
+    relationship_validator: burn::nn::Linear,
     /// Integrity scoring network
-    integrity_scorer: burn::nn::Linear<B>,
+    integrity_scorer: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> StructuralIntegrityChecker<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl StructuralIntegrityChecker {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let hidden_dim = obs_dim / 2;
 
@@ -29,7 +29,7 @@ impl<B: Backend> StructuralIntegrityChecker<B> {
         })
     }
 
-    pub(crate) async fn check_integrity(&self, observation: &Tensor<B, 2>) -> LonebothResult<f32> {
+    pub(crate) async fn check_integrity(&self, observation: &Tensor<2>) -> LonebothResult<f32> {
         let components = self.activation.forward(self.component_analyzer.forward(observation.clone()));
         let relationships = self.activation.forward(self.relationship_validator.forward(components));
         let integrity_score = self.integrity_scorer.forward(relationships).sigmoid().into_scalar();

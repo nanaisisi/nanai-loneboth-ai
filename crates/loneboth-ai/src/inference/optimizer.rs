@@ -147,10 +147,7 @@ impl DecisionOptimizer {
     }
 
     /// Apply conservative adjustment for high uncertainty
-    async fn apply_conservative_adjustment(
-        &self,
-        action: Tensor<2>,
-    ) -> LonebothResult<Tensor<2>> {
+    async fn apply_conservative_adjustment(&self, action: Tensor<2>) -> LonebothResult<Tensor<2>> {
         // Scale down action magnitude for conservative behavior
         let conservative_action = action * 0.8;
         Ok(conservative_action)
@@ -224,10 +221,7 @@ impl RealtimeAdaptationController {
         }
     }
 
-    async fn detect_adaptation_need(
-        &self,
-        observations: Tensor<2>,
-    ) -> LonebothResult<Tensor<2>> {
+    async fn detect_adaptation_need(&self, observations: Tensor<2>) -> LonebothResult<Tensor<2>> {
         let features = self
             .activation
             .forward(self.trigger_detector.forward(observations));

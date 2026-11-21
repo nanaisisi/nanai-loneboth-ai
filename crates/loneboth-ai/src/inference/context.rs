@@ -42,10 +42,7 @@ impl ContextTracker {
         }
     }
 
-    pub(crate) async fn update_context(
-        &mut self,
-        observations: &Tensor<2>,
-    ) -> LonebothResult<()> {
+    pub(crate) async fn update_context(&mut self, observations: &Tensor<2>) -> LonebothResult<()> {
         // Extract features from observations
         let features = self.extract_context_features(observations)?;
 

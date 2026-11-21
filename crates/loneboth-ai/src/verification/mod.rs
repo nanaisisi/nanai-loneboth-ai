@@ -30,23 +30,23 @@ use std::time::Instant;
 use tracing::{debug, info};
 
 /// Comprehensive verification system for system integrity and consistency
-pub struct VerificationSystem<B: Backend> {
+pub struct VerificationSystem {
     /// Consistency verification network
-    consistency_verifier: ConsistencyVerifier<B>,
+    consistency_verifier: ConsistencyVerifier,
     /// Behavioral validation system
-    behavioral_validator: BehavioralValidator<B>,
+    behavioral_validator: BehavioralValidator,
     /// Structural integrity checker
-    structural_checker: StructuralIntegrityChecker<B>,
+    structural_checker: StructuralIntegrityChecker,
     /// Performance verification system
-    performance_verifier: PerformanceVerifier<B>,
+    performance_verifier: PerformanceVerifier,
     /// Verification configuration
     config: VerificationConfig,
     /// Device for computation
-    device: Device<B>,
+    device: Device,
 }
 
-impl<B: Backend> VerificationSystem<B> {
-    pub fn new(config: &SystemConfig, device: Device<B>) -> LonebothResult<Self> {
+impl VerificationSystem {
+    pub fn new(config: &SystemConfig, device: Device) -> LonebothResult<Self> {
         info!("Initializing VerificationSystem");
         
         let verification_config = VerificationConfig::default();
@@ -67,7 +67,7 @@ impl<B: Backend> VerificationSystem<B> {
     }
     
     /// Perform comprehensive system verification
-    pub async fn verify_system(&self, system_state: &EnvironmentState<B>) -> LonebothResult<VerificationResult> {
+    pub async fn verify_system(&self, system_state: &EnvironmentState) -> LonebothResult<VerificationResult> {
         info!("Starting comprehensive system verification");
         
         let start_time = Instant::now();
@@ -143,7 +143,7 @@ impl<B: Backend> VerificationSystem<B> {
     }
     
     /// Verify system consistency
-    async fn verify_consistency(&self, system_state: &EnvironmentState<B>) -> LonebothResult<ConsistencyResult> {
+    async fn verify_consistency(&self, system_state: &EnvironmentState) -> LonebothResult<ConsistencyResult> {
         debug!("Verifying system consistency");
         
         let observation = system_state.current_observation();
@@ -174,7 +174,7 @@ impl<B: Backend> VerificationSystem<B> {
     }
     
     /// Validate behavioral patterns
-    async fn validate_behavior(&self, system_state: &EnvironmentState<B>) -> LonebothResult<BehavioralResult> {
+    async fn validate_behavior(&self, system_state: &EnvironmentState) -> LonebothResult<BehavioralResult> {
         debug!("Validating behavioral patterns");
         
         let observation = system_state.current_observation();
@@ -205,7 +205,7 @@ impl<B: Backend> VerificationSystem<B> {
     }
     
     /// Check structural integrity
-    async fn check_structural_integrity(&self, system_state: &EnvironmentState<B>) -> LonebothResult<StructuralResult> {
+    async fn check_structural_integrity(&self, system_state: &EnvironmentState) -> LonebothResult<StructuralResult> {
         debug!("Checking structural integrity");
         
         let observation = system_state.current_observation();
@@ -238,7 +238,7 @@ impl<B: Backend> VerificationSystem<B> {
     }
     
     /// Verify system performance
-    async fn verify_performance(&self, system_state: &EnvironmentState<B>) -> LonebothResult<PerformanceResult> {
+    async fn verify_performance(&self, system_state: &EnvironmentState) -> LonebothResult<PerformanceResult> {
         debug!("Verifying system performance");
         
         let observation = system_state.current_observation();

@@ -10,30 +10,30 @@ use burn::tensor::Device;
 
 /// Structural adaptation focusing on system architecture changes
 #[derive(Module, Debug)]
-pub struct StructuralAdaptationController<B: Backend> {
+pub struct StructuralAdaptationController {
     /// Structure analysis network
-    structure_analyzer: StructureAnalyzer<B>,
+    structure_analyzer: StructureAnalyzer,
     /// Adaptation decision network
-    adaptation_decider: AdaptationDecider<B>,
+    adaptation_decider: AdaptationDecider,
     /// Structure modification network
-    structure_modifier: StructureModifier<B>,
+    structure_modifier: StructureModifier,
     /// Validation network
-    validation_network: ValidationNetwork<B>,
+    validation_network: ValidationNetwork,
 }
 
 #[derive(Module, Debug)]
-pub struct StructureAnalyzer<B: Backend> {
+pub struct StructureAnalyzer {
     /// Feature extraction for structures
-    feature_extractor: burn::nn::Linear<B>,
+    feature_extractor: burn::nn::Linear,
     /// Structural pattern recognition
-    pattern_recognizer: burn::nn::Linear<B>,
+    pattern_recognizer: burn::nn::Linear,
     /// Change detection network
-    change_detector: burn::nn::Linear<B>,
+    change_detector: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> StructureAnalyzer<B> {
-    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl StructureAnalyzer {
+    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             feature_extractor: burn::nn::LinearConfig::new(in_dim, hidden_dim).init(device),
             pattern_recognizer: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -44,18 +44,18 @@ impl<B: Backend> StructureAnalyzer<B> {
 }
 
 #[derive(Module, Debug)]
-pub struct AdaptationDecider<B: Backend> {
+pub struct AdaptationDecider {
     /// Decision criteria network
-    criteria_network: burn::nn::Linear<B>,
+    criteria_network: burn::nn::Linear,
     /// Risk assessment network
-    risk_assessor: burn::nn::Linear<B>,
+    risk_assessor: burn::nn::Linear,
     /// Benefit estimation network
-    benefit_estimator: burn::nn::Linear<B>,
+    benefit_estimator: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> AdaptationDecider<B> {
-    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl AdaptationDecider {
+    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             criteria_network: burn::nn::LinearConfig::new(in_dim, hidden_dim).init(device),
             risk_assessor: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -66,18 +66,18 @@ impl<B: Backend> AdaptationDecider<B> {
 }
 
 #[derive(Module, Debug)]
-pub struct StructureModifier<B: Backend> {
+pub struct StructureModifier {
     /// Modification planning network
-    planning_network: burn::nn::Linear<B>,
+    planning_network: burn::nn::Linear,
     /// Implementation network
-    implementation_network: burn::nn::Linear<B>,
+    implementation_network: burn::nn::Linear,
     /// Rollback mechanism
-    rollback_mechanism: burn::nn::Linear<B>,
+    rollback_mechanism: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> StructureModifier<B> {
-    pub fn new(in_dim: usize, out_dim: usize, device: &Device<B>) -> Self {
+impl StructureModifier {
+    pub fn new(in_dim: usize, out_dim: usize, device: &Device) -> Self {
         Self {
             planning_network: burn::nn::LinearConfig::new(in_dim, out_dim).init(device),
             implementation_network: burn::nn::LinearConfig::new(out_dim, out_dim).init(device),
@@ -88,18 +88,18 @@ impl<B: Backend> StructureModifier<B> {
 }
 
 #[derive(Module, Debug)]
-pub struct ValidationNetwork<B: Backend> {
+pub struct ValidationNetwork {
     /// Validation criteria network
-    validation_criteria: burn::nn::Linear<B>,
+    validation_criteria: burn::nn::Linear,
     /// Performance validation
-    performance_validator: burn::nn::Linear<B>,
+    performance_validator: burn::nn::Linear,
     /// Stability checker
-    stability_checker: burn::nn::Linear<B>,
+    stability_checker: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> ValidationNetwork<B> {
-    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl ValidationNetwork {
+    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             validation_criteria: burn::nn::LinearConfig::new(in_dim, hidden_dim).init(device),
             performance_validator: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -109,8 +109,8 @@ impl<B: Backend> ValidationNetwork<B> {
     }
 }
 
-impl<B: Backend> StructuralAdaptationController<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl StructuralAdaptationController {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let hidden_dim = obs_dim / 2;
 
@@ -124,7 +124,7 @@ impl<B: Backend> StructuralAdaptationController<B> {
 
     pub(crate) async fn analyze_structural_needs(
         &self,
-        _env_state: &EnvironmentState<B>,
+        _env_state: &EnvironmentState,
     ) -> LonebothResult<StructuralNeeds> {
         Ok(StructuralNeeds {
             modification_areas: vec!["core".to_string()],

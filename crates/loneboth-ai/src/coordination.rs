@@ -11,22 +11,22 @@ use serde::{Deserialize, Serialize};
 use tracing::{info, debug, warn};
 
 /// System-wide coordination controller managing behavioral consistency
-pub struct CoordinationSystem<B: Backend> {
+pub struct CoordinationSystem {
     /// Primary coordination network
-    coordination_network: CoordinationNetwork<B>,
+    coordination_network: CoordinationNetwork,
     /// Coordination mode configuration
     mode: CoordinationMode,
     /// Device for computation
-    device: Device<B>,
+    device: Device,
 }
 
 /// Neural network for coordination decision making
 #[derive(Module, Debug)]
-pub struct CoordinationNetwork<B: Backend> {
+pub struct CoordinationNetwork {
     /// Pattern recognition network
-    pattern_recognizer: burn::nn::Linear<B>,
+    pattern_recognizer: burn::nn::Linear,
     /// Decision synthesis network
-    decision_synthesizer: burn::nn::Linear<B>,
+    decision_synthesizer: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
@@ -47,8 +47,8 @@ pub enum CoordinationMode {
     Adaptive,
 }
 
-impl<B: Backend> CoordinationSystem<B> {
-    pub fn new(mode: CoordinationMode, config: &SystemConfig, device: Device<B>) -> LonebothResult<Self> {
+impl CoordinationSystem {
+    pub fn new(mode: CoordinationMode, config: &SystemConfig, device: Device) -> LonebothResult<Self> {
         info!("Initializing CoordinationSystem with mode: {:?}", mode);
         
         let coordination_network = CoordinationNetwork::new(config, &device)?;
@@ -66,8 +66,8 @@ impl<B: Backend> CoordinationSystem<B> {
     }
 }
 
-impl<B: Backend> CoordinationNetwork<B> {
-    fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl CoordinationNetwork {
+    fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let hidden_dim = obs_dim / 2;
         

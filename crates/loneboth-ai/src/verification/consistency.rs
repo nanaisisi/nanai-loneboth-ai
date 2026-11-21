@@ -6,18 +6,18 @@ use burn::tensor::{Device, Tensor};
 
 /// Neural network for consistency verification
 #[derive(Module, Debug)]
-pub struct ConsistencyVerifier<B: Backend> {
+pub struct ConsistencyVerifier {
     /// Consistency analysis network
-    analysis_network: burn::nn::Linear<B>,
+    analysis_network: burn::nn::Linear,
     /// Violation detection network
-    violation_detector: burn::nn::Linear<B>,
+    violation_detector: burn::nn::Linear,
     /// Consistency scoring network
-    scoring_network: burn::nn::Linear<B>,
+    scoring_network: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> ConsistencyVerifier<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl ConsistencyVerifier {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let hidden_dim = obs_dim / 2;
 
@@ -29,7 +29,7 @@ impl<B: Backend> ConsistencyVerifier<B> {
         })
     }
 
-    pub(crate) async fn verify(&self, observation: &Tensor<B, 2>) -> LonebothResult<f32> {
+    pub(crate) async fn verify(&self, observation: &Tensor<2>) -> LonebothResult<f32> {
         let analyzed = self.activation.forward(self.analysis_network.forward(observation.clone()));
         let violations = self.activation.forward(self.violation_detector.forward(analyzed));
         let score = self.scoring_network.forward(violations);

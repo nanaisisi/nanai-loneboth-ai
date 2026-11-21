@@ -7,15 +7,18 @@ mod ui;
 use anyhow::Result;
 use clap::Parser;
 use devices::sample_system_telemetry;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tracing::info;
 use tray::TrayManager;
 use ui::LonebothApp;
 use windows_reactor::App;
 
 #[derive(Parser, Debug)]
-#[command(name = "loneboth-gui", about = "Loneboth Sensation & Hardware Monitor GUI")]
+#[command(
+    name = "loneboth-gui",
+    about = "Loneboth Sensation & Hardware Monitor GUI"
+)]
 struct Cli {
     /// トレイアイコン常駐モード
     #[arg(long, default_value = "true")]

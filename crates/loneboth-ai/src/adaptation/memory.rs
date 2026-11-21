@@ -10,30 +10,30 @@ use std::collections::HashMap;
 
 /// Long-term adaptation trend analyzer
 #[derive(Module, Debug)]
-pub struct TrendAnalyzer<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct TrendAnalyzer {
+    layer: burn::nn::Linear,
 }
 
 /// Pattern retrieval mechanism
 #[derive(Module, Debug)]
-pub struct PatternRetriever<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct PatternRetriever {
+    layer: burn::nn::Linear,
 }
 
 /// Memory system for adaptation learning and history
-pub struct AdaptationMemorySystem<B: Backend> {
+pub struct AdaptationMemorySystem {
     /// Successful adaptation patterns
-    pub(crate) success_patterns: HashMap<String, AdaptationPattern<B>>,
+    pub(crate) success_patterns: HashMap<String, AdaptationPattern>,
     /// Failed adaptation records
     pub(crate) failure_records: Vec<AdaptationFailure>,
     /// Long-term adaptation trends
-    pub(crate) trend_analyzer: TrendAnalyzer<B>,
+    pub(crate) trend_analyzer: TrendAnalyzer,
     /// Pattern retrieval system
-    pub(crate) pattern_retriever: PatternRetriever<B>,
+    pub(crate) pattern_retriever: PatternRetriever,
 }
 
-impl<B: Backend> AdaptationMemorySystem<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl AdaptationMemorySystem {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let dim = config.environment.observation_dimension;
         Ok(Self {
             success_patterns: HashMap::new(),
@@ -49,14 +49,14 @@ impl<B: Backend> AdaptationMemorySystem<B> {
 
     pub(crate) async fn find_similar_pattern(
         &self,
-        _analysis: &AdaptationAnalysis<B>,
-    ) -> LonebothResult<Option<AdaptationPattern<B>>> {
+        _analysis: &AdaptationAnalysis,
+    ) -> LonebothResult<Option<AdaptationPattern>> {
         Ok(None)
     }
 
     pub(crate) async fn record_success(
         &mut self,
-        _env_state: &EnvironmentState<B>,
+        _env_state: &EnvironmentState,
         _strategy: &AdaptationStrategy,
         _result: &ValidationResult,
     ) -> LonebothResult<()> {
@@ -65,7 +65,7 @@ impl<B: Backend> AdaptationMemorySystem<B> {
 
     pub(crate) async fn record_failure(
         &mut self,
-        _env_state: &EnvironmentState<B>,
+        _env_state: &EnvironmentState,
         _strategy: &AdaptationStrategy,
         _result: &ValidationResult,
     ) -> LonebothResult<()> {

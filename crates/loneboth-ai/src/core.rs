@@ -23,7 +23,8 @@ pub struct ActionExecutor {
     action_synthesizer: ActionSynthesizer,
     /// Execution statistics
     execution_count: u64,
-    /// Configuration reference
+    /// Configuration copy for reference
+    #[module(skip)]
     config: SystemConfig,
 }
 
@@ -101,11 +102,7 @@ impl RelationalAnalyzer {
     }
 
     /// Analyze relational patterns between structural elements
-    fn forward(
-        &self,
-        structural_features: Tensor<2>,
-        temporal_context: Tensor<2>,
-    ) -> Tensor<2> {
+    fn forward(&self, structural_features: Tensor<2>, temporal_context: Tensor<2>) -> Tensor<2> {
         // Apply attention to structural features
         let attended = self
             .activation
@@ -144,11 +141,7 @@ impl ActionSynthesizer {
     }
 
     /// Synthesize actions from structural and relational features
-    fn forward(
-        &self,
-        structural_features: Tensor<2>,
-        relational_features: Tensor<2>,
-    ) -> Tensor<2> {
+    fn forward(&self, structural_features: Tensor<2>, relational_features: Tensor<2>) -> Tensor<2> {
         // Fuse structural and relational features
         let fused = Tensor::cat(vec![structural_features, relational_features], 1);
         let mut x = self.activation.forward(self.fusion_layer.forward(fused));
@@ -189,10 +182,7 @@ impl ActionExecutor {
 
     /// Execute action based on environmental state
     /// This is the core method that integrates structural and relational processing
-    pub async fn execute(
-        &mut self,
-        env_state: &EnvironmentState,
-    ) -> LonebothResult<Tensor<2>> {
+    pub async fn execute(&mut self, env_state: &EnvironmentState) -> LonebothResult<Tensor<2>> {
         debug!("Executing action for environmental state");
 
         // Extract current observation and temporal context
@@ -254,10 +244,7 @@ impl ActionExecutor {
     }
 
     /// Predict environmental response to action (simplified implementation)
-    fn predict_environmental_response(
-        &self,
-        _action: &Tensor<2>,
-    ) -> LonebothResult<Tensor<2>> {
+    fn predict_environmental_response(&self, _action: &Tensor<2>) -> LonebothResult<Tensor<2>> {
         // This would be implemented with a learned environment model
         // For now, return a placeholder
         Err(anyhow!(
@@ -266,10 +253,7 @@ impl ActionExecutor {
     }
 
     /// Compute adaptation signal for model updates
-    fn compute_adaptation_signal(
-        &self,
-        action_impact: &Tensor<2>,
-    ) -> LonebothResult<Tensor<2>> {
+    fn compute_adaptation_signal(&self, action_impact: &Tensor<2>) -> LonebothResult<Tensor<2>> {
         // Compute magnitude of adaptation needed
         let adaptation_magnitude = action_impact.clone().abs().mean();
 

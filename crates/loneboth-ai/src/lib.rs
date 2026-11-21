@@ -4,8 +4,7 @@
 //! environmental adaptation, and structural-relational execution patterns.
 
 use anyhow::Result;
-#[cfg(feature = "candle")]
-use burn::backend::Candle;
+#[cfg(feature = "wgpu")]
 use burn::backend::{Autodiff, Wgpu};
 use burn::tensor::{Device, Tensor};
 use serde::{Deserialize, Serialize};
@@ -28,8 +27,10 @@ pub use inference::{DecisionMaker, InferenceEngine};
 pub use nanai_burn_gna::{GnaBackend, GnaDevice};
 pub use training::{AdaptationLearner, TrainingPipeline};
 
+#[cfg(feature = "wgpu")]
 /// Backend type aliases for clarity
 pub type Backend = Wgpu<f32, i32>;
+#[cfg(feature = "wgpu")]
 pub type AutodiffBackend = Autodiff<Backend>;
 
 /// Main result type with enhanced error context
@@ -69,7 +70,6 @@ impl Default for DeviceConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum BackendType {
-    Candle,
     Wgpu,
     Gna,
     #[default]
@@ -144,27 +144,27 @@ impl Default for SystemConfig {
 
 /// Central orchestrator for the Loneboth AI system
 /// Integrates training and inference in a unified, action-oriented framework
-pub struct LonebothAI<B: burn::prelude::Backend> {
+pub struct LonebothAI {
     config: SystemConfig,
-    executor: ActionExecutor<B>,
-    environment: Environment<B>,
-    training_pipeline: TrainingPipeline<B>,
-    inference_engine: InferenceEngine<B>,
-    device: Device<B>,
+    executor: ActionExecutor,
+    environment: Environment,
+    training_pipeline: TrainingPipeline,
+    inference_engine: InferenceEngine,
+    device: Device,
 }
 
-impl<B: burn::prelude::Backend> LonebothAI<B> {
+impl LonebothAI {
     /// Initialize with default configuration
-    pub fn new(device: Device<B>) -> LonebothResult<Self> {
+    pub fn new(device: Device) -> LonebothResult<Self> {
         Self::with_config(SystemConfig::default(), device)
     }
 
     /// Initialize with custom configuration
-    pub fn with_config(config: SystemConfig, device: Device<B>) -> LonebothResult<Self> {
+    pub fn with_config(config: SystemConfig, device: Device) -> LonebothResult<Self> {
         info!("Initializing Loneboth AI with config: {:?}", config);
 
         let executor = ActionExecutor::new(&config, device.clone())?;
-        let environment = Environment::new(&config.environment)?;
+        let environment = Environment::new(&config.environment, device.clone())?;
         let training_pipeline =
             TrainingPipeline::new(&config.training, &config.adaptation, device.clone())?;
         let inference_engine = InferenceEngine::new(&config.inference, device.clone())?;
@@ -180,10 +180,7 @@ impl<B: burn::prelude::Backend> LonebothAI<B> {
     }
 
     /// Execute action in environment with unified training-inference approach
-    pub async fn execute_action(
-        &mut self,
-        observation: Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 2>> {
+    pub async fn execute_action(&mut self, observation: Tensor<2>) -> LonebothResult<Tensor<2>> {
         // Update environmental context
         let env_state = {
             let updated = self.environment.update_state(observation).await?;
@@ -208,7 +205,7 @@ impl<B: burn::prelude::Backend> LonebothAI<B> {
     /// Train the system using collected experience
     pub async fn train(
         &mut self,
-        experience_data: Vec<(Tensor<B, 2>, Tensor<B, 2>)>,
+        experience_data: Vec<(Tensor<2>, Tensor<2>)>,
     ) -> LonebothResult<()> {
         info!(
             "Starting training with {} experience samples",
@@ -230,15 +227,15 @@ impl<B: burn::prelude::Backend> LonebothAI<B> {
     }
 
     /// Perform inference on new observations
-    pub async fn infer(&self, observations: Tensor<B, 2>) -> LonebothResult<Tensor<B, 2>> {
+    pub async fn infer(&self, observations: Tensor<2>) -> LonebothResult<Tensor<2>> {
         self.inference_engine.predict(observations).await
     }
 
     /// Adapt system to current environmental conditions
     async fn adapt_to_environment(
         &mut self,
-        env_state: &EnvironmentState<B>,
-        action: &Tensor<B, 2>,
+        env_state: &EnvironmentState,
+        action: &Tensor<2>,
     ) -> LonebothResult<()> {
         warn!("Adapting to environmental changes");
 
@@ -263,7 +260,7 @@ impl<B: burn::prelude::Backend> LonebothAI<B> {
     }
 
     /// Determine if adaptation is needed based on environmental change
-    fn should_adapt(&self, env_state: &EnvironmentState<B>) -> LonebothResult<bool> {
+    fn should_adapt(&self, env_state: &EnvironmentState) -> LonebothResult<bool> {
         let change_magnitude = env_state.change_magnitude();
         Ok(change_magnitude > self.config.environment.adaptation_threshold)
     }

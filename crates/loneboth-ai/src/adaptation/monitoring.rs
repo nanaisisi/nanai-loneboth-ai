@@ -14,14 +14,14 @@ pub struct MetricsTracker {
 
 /// Anomaly detection system
 #[derive(Module, Debug)]
-pub struct AnomalyDetector<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct AnomalyDetector {
+    layer: burn::nn::Linear,
 }
 
 /// Adaptation impact assessor
 #[derive(Module, Debug)]
-pub struct ImpactAssessor<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct ImpactAssessor {
+    layer: burn::nn::Linear,
 }
 
 /// Real-time alerting system
@@ -31,19 +31,19 @@ pub struct AlertingSystem {
 }
 
 /// Monitoring system for adaptation events and performance
-pub struct AdaptationMonitoringSystem<B: Backend> {
+pub struct AdaptationMonitoringSystem {
     /// Performance metrics tracker
     pub(crate) metrics_tracker: MetricsTracker,
     /// Anomaly detection system
-    pub(crate) anomaly_detector: AnomalyDetector<B>,
+    pub(crate) anomaly_detector: AnomalyDetector,
     /// Adaptation impact assessor
-    pub(crate) impact_assessor: ImpactAssessor<B>,
+    pub(crate) impact_assessor: ImpactAssessor,
     /// Real-time alerting system
     pub(crate) alerting_system: AlertingSystem,
 }
 
-impl<B: Backend> AdaptationMonitoringSystem<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl AdaptationMonitoringSystem {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let dim = config.environment.observation_dimension;
         Ok(Self {
             metrics_tracker: MetricsTracker::default(),

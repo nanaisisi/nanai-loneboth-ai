@@ -95,7 +95,10 @@ impl Component for LonebothApp {
 
         // 3. GPU (Intel Arc / DXGI) パネル
         let gpu_title = TextBlock::new()
-            .text(format!("🎮 GPUs & Accelerators ({} detected)", self.telemetry.gpus.len()))
+            .text(format!(
+                "🎮 GPUs & Accelerators ({} detected)",
+                self.telemetry.gpus.len()
+            ))
             .font_size(15.0)
             .font_weight(FontWeight::SEMI_BOLD)
             .foreground(Color::argb(255, 180, 120, 240));

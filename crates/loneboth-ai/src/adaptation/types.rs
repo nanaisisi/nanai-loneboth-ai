@@ -7,7 +7,7 @@ use std::time::Duration;
 
 /// Adaptation pattern for learning and reuse
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdaptationPattern<B: Backend> {
+pub struct AdaptationPattern {
     /// Pattern identifier
     pub id: String,
     /// Environmental conditions when pattern was successful
@@ -24,8 +24,6 @@ pub struct AdaptationPattern<B: Backend> {
     pub last_used: u64,
     /// Pattern effectiveness score
     pub effectiveness: f32,
-    #[serde(skip)]
-    pub _phantom: std::marker::PhantomData<B>,
 }
 
 /// Specific adaptation actions taken
@@ -151,12 +149,12 @@ pub enum FailureReason {
 
 /// Adaptation analysis result
 #[derive(Debug, Clone)]
-pub struct AdaptationAnalysis<B: Backend> {
+pub struct AdaptationAnalysis {
     pub structural_requirements: StructuralNeeds,
     pub relational_requirements: RelationalNeeds,
     pub urgency: f32,
     pub complexity: f32,
-    pub environmental_context: EnvironmentState<B>,
+    pub environmental_context: EnvironmentState,
 }
 
 /// Structural adaptation needs

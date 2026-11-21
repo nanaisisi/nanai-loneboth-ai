@@ -10,30 +10,30 @@ use burn::tensor::Device;
 
 /// Relational adaptation focusing on component interactions
 #[derive(Module, Debug)]
-pub struct RelationalAdaptationController<B: Backend> {
+pub struct RelationalAdaptationController {
     /// Relationship analyzer
-    relationship_analyzer: RelationshipAnalyzer<B>,
+    relationship_analyzer: RelationshipAnalyzer,
     /// Interaction pattern detector
-    interaction_detector: InteractionPatternDetector<B>,
+    interaction_detector: InteractionPatternDetector,
     /// Relationship modifier
-    relationship_modifier: RelationshipModifier<B>,
+    relationship_modifier: RelationshipModifier,
     /// Coherence validator
-    coherence_validator: CoherenceValidator<B>,
+    coherence_validator: CoherenceValidator,
 }
 
 #[derive(Module, Debug)]
-pub struct RelationshipAnalyzer<B: Backend> {
+pub struct RelationshipAnalyzer {
     /// Relationship extraction
-    relationship_extractor: burn::nn::Linear<B>,
+    relationship_extractor: burn::nn::Linear,
     /// Interaction strength estimator
-    strength_estimator: burn::nn::Linear<B>,
+    strength_estimator: burn::nn::Linear,
     /// Dependency analyzer
-    dependency_analyzer: burn::nn::Linear<B>,
+    dependency_analyzer: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> RelationshipAnalyzer<B> {
-    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl RelationshipAnalyzer {
+    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             relationship_extractor: burn::nn::LinearConfig::new(in_dim, hidden_dim).init(device),
             strength_estimator: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -44,18 +44,18 @@ impl<B: Backend> RelationshipAnalyzer<B> {
 }
 
 #[derive(Module, Debug)]
-pub struct InteractionPatternDetector<B: Backend> {
+pub struct InteractionPatternDetector {
     /// Pattern detection network
-    pattern_detector: burn::nn::Linear<B>,
+    pattern_detector: burn::nn::Linear,
     /// Temporal pattern analyzer
-    temporal_analyzer: burn::nn::Linear<B>,
+    temporal_analyzer: burn::nn::Linear,
     /// Causality detector
-    causality_detector: burn::nn::Linear<B>,
+    causality_detector: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> InteractionPatternDetector<B> {
-    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl InteractionPatternDetector {
+    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             pattern_detector: burn::nn::LinearConfig::new(in_dim, hidden_dim).init(device),
             temporal_analyzer: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -66,18 +66,18 @@ impl<B: Backend> InteractionPatternDetector<B> {
 }
 
 #[derive(Module, Debug)]
-pub struct RelationshipModifier<B: Backend> {
+pub struct RelationshipModifier {
     /// Relationship strength modifier
-    strength_modifier: burn::nn::Linear<B>,
+    strength_modifier: burn::nn::Linear,
     /// Connection topology modifier
-    topology_modifier: burn::nn::Linear<B>,
+    topology_modifier: burn::nn::Linear,
     /// Interaction rule modifier
-    rule_modifier: burn::nn::Linear<B>,
+    rule_modifier: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> RelationshipModifier<B> {
-    pub fn new(in_dim: usize, out_dim: usize, device: &Device<B>) -> Self {
+impl RelationshipModifier {
+    pub fn new(in_dim: usize, out_dim: usize, device: &Device) -> Self {
         Self {
             strength_modifier: burn::nn::LinearConfig::new(in_dim, out_dim).init(device),
             topology_modifier: burn::nn::LinearConfig::new(out_dim, out_dim).init(device),
@@ -88,18 +88,18 @@ impl<B: Backend> RelationshipModifier<B> {
 }
 
 #[derive(Module, Debug)]
-pub struct CoherenceValidator<B: Backend> {
+pub struct CoherenceValidator {
     /// Coherence measurement network
-    coherence_measurer: burn::nn::Linear<B>,
+    coherence_measurer: burn::nn::Linear,
     /// Consistency checker
-    consistency_checker: burn::nn::Linear<B>,
+    consistency_checker: burn::nn::Linear,
     /// Integrity validator
-    integrity_validator: burn::nn::Linear<B>,
+    integrity_validator: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> CoherenceValidator<B> {
-    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device<B>) -> Self {
+impl CoherenceValidator {
+    pub fn new(in_dim: usize, hidden_dim: usize, device: &Device) -> Self {
         Self {
             coherence_measurer: burn::nn::LinearConfig::new(in_dim, hidden_dim).init(device),
             consistency_checker: burn::nn::LinearConfig::new(hidden_dim, hidden_dim).init(device),
@@ -109,8 +109,8 @@ impl<B: Backend> CoherenceValidator<B> {
     }
 }
 
-impl<B: Backend> RelationalAdaptationController<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl RelationalAdaptationController {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let hidden_dim = obs_dim / 2;
 
@@ -124,7 +124,7 @@ impl<B: Backend> RelationalAdaptationController<B> {
 
     pub(crate) async fn analyze_relational_needs(
         &self,
-        _env_state: &EnvironmentState<B>,
+        _env_state: &EnvironmentState,
     ) -> LonebothResult<RelationalNeeds> {
         Ok(RelationalNeeds {
             relationship_changes: vec!["core-environment".to_string()],

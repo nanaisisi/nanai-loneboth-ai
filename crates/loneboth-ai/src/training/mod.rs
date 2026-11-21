@@ -12,8 +12,8 @@ pub use adaptation_learner::{
 pub use types::*;
 
 use crate::{AdaptationConfig, BehaviorPattern, LonebothResult, PolicyNetwork, TrainingConfig};
-use burn::lr_scheduler::LrScheduler;
-use burn::lr_scheduler::step::{StepLrScheduler, StepLrSchedulerConfig};
+use burn::lr_scheduler::module_lr_scheduler::ModuleLrScheduler;
+use burn::lr_scheduler::step::StepLrSchedulerConfig;
 use burn::optim::AdamConfig;
 use burn::prelude::*;
 use burn::tensor::Device;
@@ -21,13 +21,13 @@ use std::time::Instant;
 use tracing::{debug, info, warn};
 
 /// Unified training pipeline integrating behavioral learning and environmental adaptation
-pub struct TrainingPipeline<B: Backend> {
+pub struct TrainingPipeline {
     /// Core policy network being trained
-    policy_network: PolicyNetwork<B>,
+    policy_network: PolicyNetwork,
     /// Behavioral pattern learner
-    behavior_learner: BehaviorPattern<B>,
+    behavior_learner: BehaviorPattern,
     /// Adaptation learning system
-    adaptation_learner: AdaptationLearner<B>,
+    adaptation_learner: AdaptationLearner,
     /// Training configuration
     training_config: TrainingConfig,
     /// Adaptation configuration
@@ -37,20 +37,20 @@ pub struct TrainingPipeline<B: Backend> {
     /// Optimizer for adaptation components
     adaptation_optimizer: AdamConfig,
     /// Learning rate scheduler
-    lr_scheduler: StepLrScheduler,
+    lr_scheduler: ModuleLrScheduler,
     /// Training metrics collection
     metrics: TrainingMetrics,
     /// Device for computation
-    device: Device<B>,
+    device: Device,
     /// Training iteration counter
     iterations: u64,
 }
 
-impl<B: Backend> TrainingPipeline<B> {
+impl TrainingPipeline {
     pub fn new(
         training_config: &TrainingConfig,
         adaptation_config: &AdaptationConfig,
-        device: Device<B>,
+        device: Device,
     ) -> LonebothResult<Self> {
         info!("Initializing TrainingPipeline");
 
@@ -103,7 +103,7 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Train behavioral patterns using collected experience
     pub async fn train_behavioral_patterns(
         &mut self,
-        experience_data: Vec<(Tensor<B, 2>, Tensor<B, 2>)>,
+        experience_data: Vec<(Tensor<2>, Tensor<2>)>,
     ) -> LonebothResult<TrainingResult> {
         info!(
             "Starting behavioral pattern training with {} samples",
@@ -224,8 +224,8 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Apply structural and relational adaptations
     pub async fn apply_adaptations(
         &mut self,
-        structural_adjustment: Tensor<B, 2>,
-        relational_adjustment: Tensor<B, 2>,
+        structural_adjustment: Tensor<2>,
+        relational_adjustment: Tensor<2>,
     ) -> LonebothResult<()> {
         info!("Applying structural and relational adaptations");
 
@@ -248,8 +248,8 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Prepare training batches from experience data
     async fn prepare_training_batches(
         &self,
-        experience_data: Vec<(Tensor<B, 2>, Tensor<B, 2>)>,
-    ) -> LonebothResult<Vec<TrainingBatch<B>>> {
+        experience_data: Vec<(Tensor<2>, Tensor<2>)>,
+    ) -> LonebothResult<Vec<TrainingBatch>> {
         debug!("Preparing training batches");
 
         let mut batches = Vec::new();
@@ -291,9 +291,9 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Compute policy loss
     fn compute_policy_loss(
         &self,
-        predictions: &Tensor<B, 2>,
-        targets: &Tensor<B, 3>,
-    ) -> LonebothResult<Tensor<B, 1>> {
+        predictions: &Tensor<2>,
+        targets: &Tensor<3>,
+    ) -> LonebothResult<Tensor<1>> {
         let targets_2d = targets.clone().squeeze::<2>();
         let loss = burn::nn::loss::MseLoss::new().forward(
             predictions.clone(),
@@ -306,9 +306,9 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Compute value loss
     fn compute_value_loss(
         &self,
-        predictions: &Tensor<B, 2>,
-        targets: &Tensor<B, 2>,
-    ) -> LonebothResult<Tensor<B, 1>> {
+        predictions: &Tensor<2>,
+        targets: &Tensor<2>,
+    ) -> LonebothResult<Tensor<1>> {
         let loss = burn::nn::loss::MseLoss::new().forward(
             predictions.clone(),
             targets.clone(),
@@ -320,7 +320,7 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Train behavioral patterns for a single batch
     async fn train_behavioral_patterns_batch(
         &mut self,
-        batch: &TrainingBatch<B>,
+        batch: &TrainingBatch,
     ) -> LonebothResult<f32> {
         debug!("Training behavioral patterns for batch");
 
@@ -367,7 +367,7 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Apply adaptation learning
     async fn apply_adaptation_learning(
         &mut self,
-        batch: &TrainingBatch<B>,
+        batch: &TrainingBatch,
     ) -> LonebothResult<Option<AdaptationEvent>> {
         let adaptation_needed = self.check_adaptation_need(batch)?;
 
@@ -394,7 +394,7 @@ impl<B: Backend> TrainingPipeline<B> {
     }
 
     /// Check if adaptation is needed
-    fn check_adaptation_need(&self, _batch: &TrainingBatch<B>) -> LonebothResult<bool> {
+    fn check_adaptation_need(&self, _batch: &TrainingBatch) -> LonebothResult<bool> {
         let recent_losses = &self.metrics.loss_history;
         if recent_losses.len() < 5 {
             return Ok(false);
@@ -409,8 +409,8 @@ impl<B: Backend> TrainingPipeline<B> {
     /// Compute accuracy metric
     fn compute_accuracy(
         &self,
-        predictions: &Tensor<B, 2>,
-        targets: &Tensor<B, 3>,
+        predictions: &Tensor<2>,
+        targets: &Tensor<3>,
     ) -> LonebothResult<f32> {
         let targets_2d = targets.clone().squeeze::<2>();
         let diff = (predictions.clone() - targets_2d).abs();

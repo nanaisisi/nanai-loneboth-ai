@@ -11,43 +11,43 @@ use std::time::Duration;
 
 /// Multi-level adaptation planner network
 #[derive(Module, Debug)]
-pub struct AdaptationPlanner<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct AdaptationPlanner {
+    layer: burn::nn::Linear,
 }
 
 /// Cross-level coordination network
 #[derive(Module, Debug)]
-pub struct CrossLevelCoordination<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct CrossLevelCoordination {
+    layer: burn::nn::Linear,
 }
 
 /// Priority management system
 #[derive(Module, Debug)]
-pub struct PriorityManager<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct PriorityManager {
+    layer: burn::nn::Linear,
 }
 
 /// Conflict resolution system
 #[derive(Module, Debug)]
-pub struct ConflictResolver<B: Backend> {
-    layer: burn::nn::Linear<B>,
+pub struct ConflictResolver {
+    layer: burn::nn::Linear,
 }
 
 /// Meta-level coordination of adaptation processes
 #[derive(Module, Debug)]
-pub struct MetaAdaptationCoordinator<B: Backend> {
+pub struct MetaAdaptationCoordinator {
     /// Multi-level adaptation planner
-    adaptation_planner: AdaptationPlanner<B>,
+    adaptation_planner: AdaptationPlanner,
     /// Cross-level coordination network
-    coordination_network: CrossLevelCoordination<B>,
+    coordination_network: CrossLevelCoordination,
     /// Priority management system
-    priority_manager: PriorityManager<B>,
+    priority_manager: PriorityManager,
     /// Conflict resolution system
-    conflict_resolver: ConflictResolver<B>,
+    conflict_resolver: ConflictResolver,
 }
 
-impl<B: Backend> MetaAdaptationCoordinator<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl MetaAdaptationCoordinator {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let dim = config.environment.observation_dimension;
         Ok(Self {
             adaptation_planner: AdaptationPlanner {
@@ -67,8 +67,8 @@ impl<B: Backend> MetaAdaptationCoordinator<B> {
 
     pub(crate) async fn plan_adaptation(
         &self,
-        _analysis: &AdaptationAnalysis<B>,
-        _pattern: Option<AdaptationPattern<B>>,
+        _analysis: &AdaptationAnalysis,
+        _pattern: Option<AdaptationPattern>,
     ) -> LonebothResult<AdaptationStrategy> {
         Ok(AdaptationStrategy {
             structural_plan: StructuralPlan {

@@ -6,18 +6,18 @@ use burn::tensor::{Device, Tensor};
 
 /// Performance verification for system efficiency and effectiveness
 #[derive(Module, Debug)]
-pub struct PerformanceVerifier<B: Backend> {
+pub struct PerformanceVerifier {
     /// Performance analysis network
-    performance_analyzer: burn::nn::Linear<B>,
+    performance_analyzer: burn::nn::Linear,
     /// Efficiency checker
-    efficiency_checker: burn::nn::Linear<B>,
+    efficiency_checker: burn::nn::Linear,
     /// Bottleneck detector
-    bottleneck_detector: burn::nn::Linear<B>,
+    bottleneck_detector: burn::nn::Linear,
     activation: burn::nn::Relu,
 }
 
-impl<B: Backend> PerformanceVerifier<B> {
-    pub(crate) fn new(config: &SystemConfig, device: &Device<B>) -> LonebothResult<Self> {
+impl PerformanceVerifier {
+    pub(crate) fn new(config: &SystemConfig, device: &Device) -> LonebothResult<Self> {
         let obs_dim = config.environment.observation_dimension;
         let hidden_dim = obs_dim / 2;
 
@@ -29,7 +29,7 @@ impl<B: Backend> PerformanceVerifier<B> {
         })
     }
 
-    pub(crate) async fn verify_performance(&self, observation: &Tensor<B, 2>) -> LonebothResult<f32> {
+    pub(crate) async fn verify_performance(&self, observation: &Tensor<2>) -> LonebothResult<f32> {
         let performance = self.activation.forward(self.performance_analyzer.forward(observation.clone()));
         let efficiency = self.activation.forward(self.efficiency_checker.forward(performance));
         let performance_score = self.bottleneck_detector.forward(efficiency).sigmoid().into_scalar();

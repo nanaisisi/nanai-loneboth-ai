@@ -36,21 +36,19 @@ pub fn get_gna_status() -> GnaHardwareStatus {
     let mut state = GNA_SESSION.lock().unwrap();
 
     let mut is_loaded = state.library.is_some();
-    if !is_loaded {
-        if let Ok(lib) = GnaLibrary::load_default() {
-            state.library = Some(lib);
-            is_loaded = true;
-        }
+    if !is_loaded && let Ok(lib) = GnaLibrary::load_default() {
+        state.library = Some(lib);
+        is_loaded = true;
     }
 
     let mut is_detected = state.device.is_some();
-    if is_loaded && !is_detected {
-        if let Some(ref lib) = state.library {
-            if let Ok(dev) = GnaDevice::open_first(lib) {
-                state.device = Some(dev);
-                is_detected = true;
-            }
-        }
+    if is_loaded
+        && !is_detected
+        && let Some(ref lib) = state.library
+        && let Ok(dev) = GnaDevice::open_first(lib)
+    {
+        state.device = Some(dev);
+        is_detected = true;
     }
 
     let description = if is_detected && is_loaded {
