@@ -28,7 +28,7 @@ candle = ["burn/candle"]
 loneboth-core = { path = "../loneboth-core" }
 
 # Burn framework for ML training and inference
-burn = { version = "0.21.0", features = ["train", "std"] }
+burn = { version = "0.22.1", features = ["train", "std"] }
 nanai-burn-gna = { git = "https://github.com/nanaisisi/nanai-burn-gna.git", branch = "main", optional = true }
 
 # Async runtime
@@ -47,4 +47,4 @@ rand = "0.10.4"
 
 # Error handling
 anyhow = "1.0.104"
-thiserror = "2.0"
+thiserror = "2.0.21"
